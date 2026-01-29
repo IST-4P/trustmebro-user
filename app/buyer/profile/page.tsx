@@ -1,0 +1,810 @@
+"use client"
+
+import { useEffect, useRef, useState, type ChangeEvent } from "react"
+import Cookies from "js-cookie"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Toast } from "@/components/ui/toast"
+import { api } from "@/lib/api"
+import type { Address, District, Province, User, Ward } from "@/lib/types"
+
+export default function ProfilePage() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; variant?: "success" | "error" } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [formData, setFormData] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+    avatar: "",
+    gender: "" as "" | "MALE" | "FEMALE" | "OTHER",
+    birthday: "",
+  })
+  const [addressLoading, setAddressLoading] = useState(false)
+  const [addressSaving, setAddressSaving] = useState(false)
+  const [addressError, setAddressError] = useState<string | null>(null)
+  const [existingAddress, setExistingAddress] = useState<Address | null>(null)
+  const [addressForm, setAddressForm] = useState({
+    provinceId: "",
+    districtId: "",
+    wardId: "",
+    address: "",
+  })
+  const [provinces, setProvinces] = useState<Province[]>([])
+  const [districts, setDistricts] = useState<District[]>([])
+  const [wards, setWards] = useState<Ward[]>([])
+  const [provincesLoading, setProvincesLoading] = useState(false)
+  const [districtsLoading, setDistrictsLoading] = useState(false)
+  const [wardsLoading, setWardsLoading] = useState(false)
+
+  useEffect(() => {
+    // Check authentication before loading user data
+    // Since backend uses HttpOnly cookies, we check via API call
+    const checkAndLoad = async () => {
+      if (typeof window !== "undefined") {
+        // First check client-side cookie (if exists)
+        const clientToken = Cookies.get("accessToken")
+        if (clientToken) {
+          loadUser()
+          return
+        }
+        
+        // If no client-side cookie, check via API (works with HttpOnly cookies)
+        // The loadUser() function will handle 401 and redirect if needed
+        loadUser()
+      }
+    }
+    
+    checkAndLoad()
+  }, [])
+
+  const loadUser = async () => {
+    setLoading(true)
+    setError(null)
+    const response = await api.user.get()
+    if (response.error) {
+      const errorMsg = typeof response.error === "string" ? response.error : String(response.error)
+      // Handle 401 - redirect to login if unauthorized
+      if (errorMsg.includes("401") || errorMsg.includes("Unauthorized")) {
+        // Check if we're already on login page to avoid redirect loop
+        if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+          window.location.href = "/buyer/login"
+          return
+        }
+      }
+      setError(errorMsg)
+    } else if (response.data) {
+      setUser(response.data)
+      
+      setFormData({
+        email: response.data.email || "",
+        firstName: response.data.firstName || "",
+        lastName: response.data.lastName || "",
+        phoneNumber: response.data.phoneNumber || response.data.phone || "",
+        avatar: response.data.avatar || "",
+        gender: response.data.gender || "",
+        birthday: response.data.birthday || "",
+      })
+      loadAddress()
+    }
+    setLoading(false)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError(null)
+    const response = await api.user.update({
+      firstName: formData.firstName || undefined,
+      lastName: formData.lastName || undefined,
+      phoneNumber: formData.phoneNumber || undefined,
+      avatar: formData.avatar || undefined,
+      gender: formData.gender || undefined,
+      birthday: formData.birthday || undefined,
+    })
+    if (response.error) {
+      setError(typeof response.error === "string" ? response.error : String(response.error))
+    } else if (response.data) {
+      setUser(response.data)
+      
+      setFormData({
+        email: response.data.email || "",
+        firstName: response.data.firstName || "",
+        lastName: response.data.lastName || "",
+        phoneNumber: response.data.phoneNumber || response.data.phone || "",
+        avatar: response.data.avatar || "",
+        gender: response.data.gender || "",
+        birthday: response.data.birthday || "",
+      })
+      setToast({ message: "Profile updated successfully!", variant: "success" })
+      window.setTimeout(() => setToast(null), 2500)
+    }
+    setSaving(false)
+  }
+
+  const handleAvatarSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const presigned = await api.media.imagePresigned({ filename: file.name })
+    if (presigned.error || !presigned.data?.presignedUrl || !presigned.data?.url) {
+      setError(
+        presigned.error ||
+          "Không thể tạo URL upload. Vui lòng thử lại."
+      )
+      setUploading(false)
+      event.target.value = ""
+      return
+    }
+
+    const upload = await api.media.uploadToPresignedUrl(presigned.data.presignedUrl, file)
+    if (upload.error) {
+      setError(upload.error)
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        avatar: presigned.data.url,
+      }))
+    }
+    setUploading(false)
+    event.target.value = ""
+  }
+
+  const loadProvinces = async () => {
+    setProvincesLoading(true)
+    setProvinces([])
+    const response = await api.location.provinces()
+    if (response.error) {
+      setAddressError(typeof response.error === "string" ? response.error : String(response.error))
+      setProvinces([])
+    } else {
+      setProvinces(response.data || [])
+    }
+    setProvincesLoading(false)
+  }
+
+  const loadDistricts = async (provinceId: string) => {
+    if (!provinceId) return
+    setDistrictsLoading(true)
+    setDistricts([])
+    const response = await api.location.districts(provinceId)
+    if (response.error) {
+      setAddressError(typeof response.error === "string" ? response.error : String(response.error))
+      setDistricts([])
+    } else {
+      setDistricts(response.data || [])
+    }
+    setDistrictsLoading(false)
+  }
+
+  const loadWards = async (districtId: string) => {
+    if (!districtId) return
+    setWardsLoading(true)
+    setWards([])
+    const response = await api.location.wards(districtId)
+    if (response.error) {
+      setAddressError(typeof response.error === "string" ? response.error : String(response.error))
+      setWards([])
+    } else {
+      setWards(response.data || [])
+    }
+    setWardsLoading(false)
+  }
+
+  const loadAddress = async () => {
+    setAddressLoading(true)
+    setAddressError(null)
+    const response = await api.address.list({ page: 1, limit: 10 })
+    if (response.error) {
+      const errorMsg = typeof response.error === "string" ? response.error : String(response.error)
+      const isNotFound = errorMsg.includes("AddressNotFound") || errorMsg.includes("404")
+      if (isNotFound) {
+        setExistingAddress(null)
+        setAddressForm({
+          provinceId: "",
+          districtId: "",
+          wardId: "",
+          address: "",
+        })
+      } else {
+        setAddressError(errorMsg)
+      }
+      setAddressLoading(false)
+      return
+    }
+
+    const addresses = response.data || []
+    if (addresses.length === 0) {
+      setExistingAddress(null)
+      setAddressForm({
+        provinceId: "",
+        districtId: "",
+        wardId: "",
+        address: "",
+      })
+    } else {
+      const primary = addresses.find((item) => item.isDefault) || addresses[0]
+      setExistingAddress(primary)
+      setAddressForm({
+        provinceId: "",
+        districtId: "",
+        wardId: "",
+        address: primary.address || "",
+      })
+    }
+    setAddressLoading(false)
+  }
+
+  const handleAddressSave = async () => {
+    const province = provinces.find((item) => item.id === Number(addressForm.provinceId))
+    const district = districts.find((item) => item.id === Number(addressForm.districtId))
+    const ward = wards.find((item) => item.id === Number(addressForm.wardId))
+
+    if (!province || !district || !ward || !addressForm.address.trim()) {
+      setAddressError("Please complete all address fields.")
+      return
+    }
+
+    setAddressSaving(true)
+    setAddressError(null)
+
+    const fullName =
+      user?.fullName ||
+      `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+      "Default"
+
+    const payload = {
+      name: fullName,
+      address: addressForm.address.trim(),
+      ward: ward.name,
+      district: district.name,
+      province: province.name,
+      isDefault: existingAddress?.isDefault ?? true,
+    }
+
+    const response = existingAddress?.id
+      ? await api.address.update({ id: existingAddress.id, ...payload })
+      : await api.address.create(payload)
+
+    if (response.error) {
+      setAddressError(typeof response.error === "string" ? response.error : String(response.error))
+    } else if (response.data) {
+      setExistingAddress(response.data)
+      setToast({
+        message: existingAddress ? "Address updated successfully!" : "Address saved successfully!",
+        variant: "success",
+      })
+      window.setTimeout(() => setToast(null), 2500)
+    }
+    setAddressSaving(false)
+  }
+
+  useEffect(() => {
+    loadProvinces()
+  }, [])
+
+  useEffect(() => {
+    if (!addressForm.provinceId) {
+      setDistricts([])
+      setWards([])
+      return
+    }
+    loadDistricts(addressForm.provinceId)
+  }, [addressForm.provinceId])
+
+  useEffect(() => {
+    if (!addressForm.districtId) {
+      setWards([])
+      return
+    }
+    loadWards(addressForm.districtId)
+  }, [addressForm.districtId])
+
+  useEffect(() => {
+    if (!existingAddress || addressForm.provinceId || provinces.length === 0) return
+    const match = provinces.find((item) => item.name === existingAddress.province)
+    if (match) {
+      setAddressForm((prev) => ({ ...prev, provinceId: String(match.id) }))
+    }
+  }, [existingAddress, provinces, addressForm.provinceId])
+
+  useEffect(() => {
+    if (!existingAddress || addressForm.districtId || districts.length === 0) return
+    const match = districts.find((item) => item.name === existingAddress.district)
+    if (match) {
+      setAddressForm((prev) => ({ ...prev, districtId: String(match.id) }))
+    }
+  }, [existingAddress, districts, addressForm.districtId])
+
+  useEffect(() => {
+    if (!existingAddress || addressForm.wardId || wards.length === 0) return
+    const match = wards.find((item) => item.name === existingAddress.ward)
+    if (match) {
+      setAddressForm((prev) => ({ ...prev, wardId: String(match.id) }))
+    }
+  }, [existingAddress, wards, addressForm.wardId])
+
+  const isAddressComplete =
+    !!addressForm.provinceId &&
+    !!addressForm.districtId &&
+    !!addressForm.wardId &&
+    !!addressForm.address.trim()
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {toast ? (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => setToast(null)}
+        />
+      ) : null}
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+          {error}
+        </div>
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Personal Information */}
+          <Card>
+            <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email (read only)</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                disabled
+              />
+            </div>
+            <div>
+              <Label>Upload Avatar</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarSelect}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? "Uploading..." : "Choose Image"}
+                </Button>
+                <span className="text-sm text-gray-500">
+                  {formData.avatar ? "Uploaded" : "No file chosen"}
+                </span>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="gender">Gender</Label>
+              <select
+                id="gender"
+                className="w-full h-10 px-3 border rounded-md bg-white"
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value as "" | "MALE" | "FEMALE" | "OTHER" })}
+              >
+                <option value="">Select gender</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="birthday">Birthday</Label>
+              <Input
+                id="birthday"
+                type="date"
+                value={formData.birthday ? formData.birthday.slice(0, 10) : ""}
+                onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+              />
+            </div>
+            <Button variant="buyer" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
+            </Button>
+          </CardContent>
+        </Card>
+
+          {/* Address */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Address</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {addressError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+                  {addressError}
+                </div>
+              )}
+              {addressLoading && (
+                <p className="text-sm text-gray-600">Loading address...</p>
+              )}
+              <div>
+                <Label htmlFor="province">Province</Label>
+                <select
+                  id="province"
+                  className="w-full h-10 px-3 border rounded-md bg-white"
+                  value={addressForm.provinceId}
+                  onChange={(e) =>
+                    setAddressForm((prev) => ({
+                      ...prev,
+                      provinceId: e.target.value,
+                      districtId: "",
+                      wardId: "",
+                    }))
+                  }
+                  disabled={provincesLoading}
+                >
+                  <option value="">
+                    {provincesLoading ? "Loading provinces..." : "Select province"}
+                  </option>
+                  {provinces.map((province) => (
+                    <option key={province.id} value={province.id}>
+                      {province.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="district">District</Label>
+                <select
+                  id="district"
+                  className="w-full h-10 px-3 border rounded-md bg-white"
+                  value={addressForm.districtId}
+                  onChange={(e) =>
+                    setAddressForm((prev) => ({
+                      ...prev,
+                      districtId: e.target.value,
+                      wardId: "",
+                    }))
+                  }
+                  disabled={!addressForm.provinceId || districtsLoading}
+                >
+                  <option value="">
+                    {!addressForm.provinceId
+                      ? "Select province first"
+                      : districtsLoading
+                        ? "Loading districts..."
+                        : "Select district"}
+                  </option>
+                  {districts.map((district) => (
+                    <option key={district.id} value={district.id}>
+                      {district.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="ward">Ward</Label>
+                <select
+                  id="ward"
+                  className="w-full h-10 px-3 border rounded-md bg-white"
+                  value={addressForm.wardId}
+                  onChange={(e) =>
+                    setAddressForm((prev) => ({
+                      ...prev,
+                      wardId: e.target.value,
+                    }))
+                  }
+                  disabled={!addressForm.districtId || wardsLoading}
+                >
+                  <option value="">
+                    {!addressForm.districtId
+                      ? "Select district first"
+                      : wardsLoading
+                        ? "Loading wards..."
+                        : "Select ward"}
+                  </option>
+                  {wards.map((ward) => (
+                    <option key={ward.id} value={ward.id}>
+                      {ward.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="addressDetail">Address</Label>
+                <Input
+                  id="addressDetail"
+                  placeholder="Street, building, house number..."
+                  value={addressForm.address}
+                  onChange={(e) =>
+                    setAddressForm((prev) => ({
+                      ...prev,
+                      address: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <Button
+                variant="buyer"
+                onClick={handleAddressSave}
+                disabled={!isAddressComplete || addressSaving || addressLoading}
+              >
+                {addressSaving
+                  ? "Saving..."
+                  : existingAddress
+                    ? "Update Address"
+                    : "Save Address"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Change Password */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Change Password</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <PasswordChangeForm userEmail={user?.email || ""} />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div>
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="w-24 h-24 bg-buyer-primary rounded-full mx-auto mb-4 flex items-center justify-center">
+                {formData.avatar || user?.avatar ? (
+                  <img 
+                    src={formData.avatar || user?.avatar || ""} 
+                    alt={user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}` || "User"} 
+                    className="w-full h-full rounded-full object-cover" 
+                  />
+                ) : (
+                  <span className="text-white text-3xl font-bold">
+                    {(
+                      user?.fullName ||
+                      `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
+                      "U"
+                    ).charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <h3 className="font-semibold text-lg mb-1">
+                {user?.fullName || 
+                 (user?.firstName && user?.lastName 
+                   ? `${user.firstName} ${user.lastName}` 
+                   : user?.firstName || user?.lastName || "User")}
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">{user?.email || ""}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PasswordChangeForm({ userEmail }: { userEmail: string }) {
+  const [step, setStep] = useState<"form" | "otp">("form")
+  const [processId, setProcessId] = useState<string>("")
+  const [passwords, setPasswords] = useState({
+    newPassword: "",
+    confirmPassword: "",
+    code: "",
+  })
+  const [sendingOTP, setSendingOTP] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSendOTP = async () => {
+    if (!userEmail) {
+      setError("Email is required")
+      return
+    }
+
+    if (!passwords.newPassword) {
+      setError("New password is required")
+      return
+    }
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setError("Passwords do not match")
+      return
+    }
+
+    if (passwords.newPassword.length < 8) {
+      setError("Password must be at least 8 characters")
+      return
+    }
+
+    setSendingOTP(true)
+    setError(null)
+
+    const response = await api.auth.sendOTP({
+      email: userEmail,
+      type: "CHANGE_PASSWORD",
+    })
+
+    if (response.error) {
+      setError(typeof response.error === "string" ? response.error : String(response.error))
+      setSendingOTP(false)
+    } else if (response.data?.processId) {
+      setProcessId(response.data.processId)
+      setStep("otp")
+      setSendingOTP(false)
+    } else {
+      setError("Failed to send OTP. Please try again.")
+      setSendingOTP(false)
+    }
+  }
+
+  const handleSubmit = async () => {
+    if (!passwords.code) {
+      setError("OTP code is required")
+      return
+    }
+
+    if (!processId) {
+      setError("Invalid request. Please start over.")
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+
+    const response = await api.auth.changePassword({
+      email: userEmail,
+      password: passwords.newPassword,
+      code: passwords.code,
+      processId: processId,
+    })
+
+    if (response.error) {
+      setError(typeof response.error === "string" ? response.error : String(response.error))
+    } else {
+      alert("Password updated successfully!")
+      setPasswords({ newPassword: "", confirmPassword: "", code: "" })
+      setStep("form")
+      setProcessId("")
+    }
+    setSaving(false)
+  }
+
+  const handleResendOTP = async () => {
+    await handleSendOTP()
+  }
+
+  return (
+    <>
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+          {error}
+        </div>
+      )}
+
+      {step === "form" ? (
+        <>
+          <div>
+            <Label htmlFor="newPassword">New Password</Label>
+            <Input
+              id="newPassword"
+              type="password"
+              placeholder="Enter new password"
+              value={passwords.newPassword}
+              onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Confirm new password"
+              value={passwords.confirmPassword}
+              onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+            />
+          </div>
+          <Button 
+            variant="buyer" 
+            onClick={handleSendOTP} 
+            disabled={sendingOTP || !passwords.newPassword || !passwords.confirmPassword}
+            className="w-full"
+          >
+            {sendingOTP ? "Sending OTP..." : "Send OTP Code"}
+          </Button>
+          {userEmail && (
+            <p className="text-sm text-gray-600 text-center">
+              OTP will be sent to: {userEmail}
+            </p>
+          )}
+        </>
+      ) : (
+        <>
+          <div>
+            <Label htmlFor="code">OTP Code</Label>
+            <Input
+              id="code"
+              type="text"
+              placeholder="Enter OTP code"
+              value={passwords.code}
+              onChange={(e) => setPasswords({ ...passwords, code: e.target.value })}
+              maxLength={6}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="buyer" 
+              onClick={handleSubmit} 
+              disabled={saving || !passwords.code}
+              className="flex-1"
+            >
+              {saving ? "Updating..." : "Update Password"}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleResendOTP} 
+              disabled={sendingOTP}
+            >
+              Resend
+            </Button>
+          </div>
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              setStep("form")
+              setPasswords({ ...passwords, code: "" })
+              setError(null)
+            }}
+            className="w-full"
+          >
+            Back
+          </Button>
+        </>
+      )}
+    </>
+  )
+}
