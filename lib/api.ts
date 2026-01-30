@@ -217,9 +217,9 @@ async function fetchApi<T>(
   const token = getAuthToken()
   const url = `${API_BASE_URL}${endpoint}`
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   }
 
   if (token) {
@@ -692,8 +692,8 @@ export const api = {
         body: JSON.stringify(data),
       })
       if (response.data) {
-        const accessToken = response.data.accessToken || response.data.data?.accessToken
-        const refreshToken = response.data.refreshToken || response.data.data?.refreshToken
+        const accessToken = response.data.accessToken
+        const refreshToken = response.data.refreshToken
 
         if (accessToken && typeof accessToken === "string" && accessToken !== "undefined") {
           setAuthToken(accessToken)
@@ -720,8 +720,8 @@ export const api = {
         body: JSON.stringify({ refreshToken: tokenToUse }),
       })
       if (response.data) {
-        const accessToken = response.data.accessToken || response.data.data?.accessToken
-        const newRefreshToken = response.data.refreshToken || response.data.data?.refreshToken
+        const accessToken = response.data.accessToken
+        const newRefreshToken = response.data.refreshToken
 
         if (accessToken && typeof accessToken === "string" && accessToken !== "undefined") {
           setAuthToken(accessToken)
@@ -804,47 +804,47 @@ export const api = {
 
   // Location
   location: {
-    provinces: async () => {
+    provinces: async (): Promise<ApiResponse<Province[]>> => {
       const response = await fetchApi<any>("/api/v1/location/provinces")
       if (response.error) return response as ApiResponse<Province[]>
       const data = response.data
-      return { data: Array.isArray(data) ? data : data?.provinces || data?.items || [] }
+      return { data: Array.isArray(data) ? data : data?.provinces || data?.items || [] } as ApiResponse<Province[]>
     },
-    districts: async (provinceId: number | string) => {
+    districts: async (provinceId: number | string): Promise<ApiResponse<District[]>> => {
       const response = await fetchApi<any>(`/api/v1/location/districts/${provinceId}`)
       if (response.error) return response as ApiResponse<District[]>
       const data = response.data
-      return { data: Array.isArray(data) ? data : data?.districts || data?.items || [] }
+      return { data: Array.isArray(data) ? data : data?.districts || data?.items || [] } as ApiResponse<District[]>
     },
-    wards: async (districtId: number | string) => {
+    wards: async (districtId: number | string): Promise<ApiResponse<Ward[]>> => {
       const response = await fetchApi<any>(`/api/v1/location/wards/${districtId}`)
       if (response.error) return response as ApiResponse<Ward[]>
       const data = response.data
-      return { data: Array.isArray(data) ? data : data?.wards || data?.items || [] }
+      return { data: Array.isArray(data) ? data : data?.wards || data?.items || [] } as ApiResponse<Ward[]>
     },
   },
 
   // Categories
   category: {
-    list: async () => {
+    list: async (): Promise<ApiResponse<Category[]>> => {
       const response = await fetchApi<any>("/api/v1/category")
       if (response.error) return response as ApiResponse<Category[]>
       const data = response.data
       const categories = Array.isArray(data) ? data : data?.categories || []
-      return { data: Array.isArray(categories) ? categories : [] }
+      return { data: Array.isArray(categories) ? categories : [] } as ApiResponse<Category[]>
     },
     get: (id: string) => fetchApi<Category>(`/api/v1/category/${id}`),
   },
 
   // Brands
   brand: {
-    list: async (params?: { page?: number; limit?: number }) => {
+    list: async (params?: { page?: number; limit?: number }): Promise<ApiResponse<Brand[]>> => {
       const query = params ? buildQueryParams(params) : ""
       const response = await fetchApi<any>(`/api/v1/brand${query}`)
       if (response.error) return response as ApiResponse<Brand[]>
       const data = response.data
       const brands = Array.isArray(data) ? data : data?.brands || []
-      return { data: Array.isArray(brands) ? brands : [] }
+      return { data: Array.isArray(brands) ? brands : [] } as ApiResponse<Brand[]>
     },
     get: (id: string) => fetchApi<Brand>(`/api/v1/brand/${id}`),
   },
@@ -975,13 +975,13 @@ export const api = {
 
   // Orders
   order: {
-    list: async (params?: { page?: number; limit?: number; status?: string; paymentId?: string; shopId?: string }) => {
+    list: async (params?: { page?: number; limit?: number; status?: string; paymentId?: string; shopId?: string }): Promise<ApiResponse<Order[]>> => {
       const query = params ? buildQueryParams(params) : ""
       const response = await fetchApi<any>(`/api/v1/order${query}`)
       if (response.error) return response as ApiResponse<Order[]>
       const data = response.data
       const orders = Array.isArray(data) ? data : data?.orders || []
-      return { data: Array.isArray(orders) ? orders : [] }
+      return { data: Array.isArray(orders) ? orders : [] } as ApiResponse<Order[]>
     },
     get: (orderId: string) => fetchApi<Order>(`/api/v1/order/${orderId}`),
     create: (data: CreateOrderRequest) =>
@@ -1062,13 +1062,13 @@ export const api = {
 
   // Notifications
     notification: {
-    list: async (params?: { page?: number; limit?: number; type?: string }) => {
+    list: async (params?: { page?: number; limit?: number; type?: string }): Promise<ApiResponse<Notification[]>> => {
       const query = params ? buildQueryParams(params) : ""
       const response = await fetchApi<any>(`/api/v1/notification${query}`)
       if (response.error) return response as ApiResponse<Notification[]>
       const data = response.data
       const notifications = Array.isArray(data) ? data : data?.notifications || []
-      return { data: Array.isArray(notifications) ? notifications : [] }
+      return { data: Array.isArray(notifications) ? notifications : [] } as ApiResponse<Notification[]>
     },
     update: (data: UpdateNotificationRequest) =>
       fetchApi<Notification>("/api/v1/notification", {
@@ -1133,13 +1133,13 @@ export const api = {
       scope?: "ORDER" | "SHIPPING"
       discountType?: "PERCENT" | "AMOUNT"
       code?: string
-    }) => {
+    }): Promise<ApiResponse<Promotion[]>> => {
       const query = params ? buildQueryParams(params) : ""
       const response = await fetchApi<any>(`/api/v1/promotion${query}`)
       if (response.error) return response as ApiResponse<Promotion[]>
       const data = response.data
       const promotions = Array.isArray(data) ? data : data?.promotions || []
-      return { data: Array.isArray(promotions) ? promotions : [] }
+      return { data: Array.isArray(promotions) ? promotions : [] } as ApiResponse<Promotion[]>
     },
     get: (id: string) => fetchApi<Promotion>(`/api/v1/promotion/${id}`),
   },

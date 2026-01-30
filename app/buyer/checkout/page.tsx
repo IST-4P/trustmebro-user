@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +13,7 @@ import { ArrowLeft, CheckCircle2 } from "lucide-react"
 import { api } from "@/lib/api"
 import type { Cart, Order, Payment, Promotion, User } from "@/lib/types"
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const [step, setStep] = useState(1)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -1819,5 +1819,13 @@ export default function CheckoutPage() {
         </div>
       ) : null}
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CheckoutContent />
+    </Suspense>
   )
 }

@@ -219,7 +219,9 @@ function VideoSlide({
       hls.on(Hls.Events.LEVEL_LOADED, (_, data) => logDebug("HLS level loaded", video.id, data?.level))
       hls.on(Hls.Events.FRAG_LOADED, (_, data) => logDebug("HLS fragment loaded", video.id, data?.frag?.sn))
       return () => {
-        hls.destroy()
+        if (hls) {
+          hls.destroy()
+        }
         hlsRef.current = null
         videoEl.removeEventListener("canplay", handleCanPlay)
         videoEl.removeEventListener("error", handleVideoError)

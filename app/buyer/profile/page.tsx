@@ -150,7 +150,7 @@ export default function ProfilePage() {
     } else {
       setFormData((prev) => ({
         ...prev,
-        avatar: presigned.data.url,
+        avatar: presigned.data?.url || "",
       }))
     }
     setUploading(false)
