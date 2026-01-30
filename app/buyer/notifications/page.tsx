@@ -34,28 +34,28 @@ export default function NotificationsPage() {
     const type = normalizeNotificationType(notification.type)
     switch (type) {
       case "order":
-        return "Order update"
+        return "Cập nhật đơn hàng"
       case "promotion":
-        return "Promotion"
+        return "Khuyến mãi"
       case "wallet":
-        return "Wallet update"
+        return "Cập nhật ví"
       case "system":
-        return "System update"
+        return "Cập nhật hệ thống"
       case "message":
-        return "New message"
+        return "Tin nhắn mới"
       default:
-        return "Notification"
+        return "Thông báo"
     }
   }
 
   const getNotificationMessage = (notification: Notification) => {
-    return notification.description || notification.message || "You have a new notification."
+    return notification.description || notification.message || "Bạn có thông báo mới."
   }
 
   const formatNotificationTime = (timestamp?: string) => {
-    if (!timestamp) return "Just now"
+    if (!timestamp) return "Vừa xong"
     const date = new Date(timestamp)
-    if (Number.isNaN(date.getTime())) return "Just now"
+    if (Number.isNaN(date.getTime())) return "Vừa xong"
     return date.toLocaleString("vi-VN")
   }
 
@@ -142,7 +142,7 @@ export default function NotificationsPage() {
   }
 
   const handleDelete = async (notification: Notification) => {
-    if (!confirm("Delete this notification?")) return
+    if (!confirm("Xóa thông báo này?")) return
     const response = await api.notification.delete(notification.id)
     if (response.error) {
       alert(response.error)
@@ -173,11 +173,11 @@ export default function NotificationsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Notifications</h1>
-          <p className="text-gray-600 mt-1">Stay updated with your account activity</p>
+          <h1 className="text-3xl font-bold text-gray-800">Thông báo</h1>
+          <p className="text-gray-600 mt-1">Theo dõi hoạt động tài khoản</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="info">{unreadCount} unread</Badge>
+          <Badge variant="info">{unreadCount} chưa đọc</Badge>
           <Button
             variant="buyerOutline"
             size="sm"
@@ -185,14 +185,14 @@ export default function NotificationsPage() {
             disabled={markingAll || unreadCount === 0}
           >
             <CheckCircle className="mr-2" size={16} />
-            Mark all read
+            Đánh dấu đã đọc tất cả
           </Button>
         </div>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading notifications...</p>
+          <p className="text-gray-600">Đang tải thông báo...</p>
         </div>
       ) : error ? (
         <div className="text-center py-12">
@@ -200,7 +200,7 @@ export default function NotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No notifications found</p>
+          <p className="text-gray-600">Không có thông báo</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -241,7 +241,7 @@ export default function NotificationsPage() {
                           size="sm"
                           onClick={() => handleMarkRead(notification)}
                         >
-                          Mark read
+                          Đánh dấu đã đọc
                         </Button>
                       ) : null}
                       <Button
@@ -251,7 +251,7 @@ export default function NotificationsPage() {
                         onClick={() => handleDelete(notification)}
                       >
                         <Trash2 className="mr-2" size={16} />
-                        Delete
+                        Xóa
                       </Button>
                     </div>
                   </div>

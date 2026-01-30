@@ -27,7 +27,7 @@ type Product = {
   averageRate?: number
 }
 
-const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} ₫`
+const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} VND`
 
 const shuffleArray = <T,>(items: T[]) => {
   const array = [...items]
@@ -94,14 +94,14 @@ export default async function BuyerHome() {
       <section className="bg-gradient-to-r from-buyer-primary to-buyer-secondary rounded-2xl p-8 md:p-12 text-white mb-12">
         <div className="max-w-2xl">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Welcome to TrustMeBro
+            Chào mừng đến với TrustMeBro
           </h1>
           <p className="text-lg md:text-xl mb-6 opacity-90">
-            Your trusted marketplace for quality products at great prices
+            Chợ trực tuyến tin cậy với sản phẩm chất lượng và giá tốt
           </p>
           <Link href="/buyer/products">
             <Button size="lg" variant="buyer" className="bg-white text-buyer-primary hover:bg-gray-100">
-              Shop Now
+              Mua ngay
             </Button>
           </Link>
         </div>
@@ -109,12 +109,12 @@ export default async function BuyerHome() {
 
       {/* Categories */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Shop by Category</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Mua sắm theo danh mục</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {displayCategories.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="p-6 text-center text-gray-600">
-                No categories found.
+                Không tìm thấy danh mục.
               </CardContent>
             </Card>
           ) : (
@@ -149,10 +149,10 @@ export default async function BuyerHome() {
       {/* Featured Products */}
       <section className="mb-12">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Featured Products</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Sản phẩm nổi bật</h2>
           <Link href="/buyer/products">
             <Button variant="ghost" className="text-buyer-primary">
-              View All
+              Xem tất cả
             </Button>
           </Link>
         </div>
@@ -160,7 +160,7 @@ export default async function BuyerHome() {
           {featuredProducts.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="p-6 text-center text-gray-600">
-                No featured products found.
+                Không có sản phẩm nổi bật.
               </CardContent>
             </Card>
           ) : (
@@ -174,7 +174,7 @@ export default async function BuyerHome() {
                   key={product.id}
                   href={`/buyer/products/${product.id}`}
                   className="block"
-                  aria-label={`View ${product.name}`}
+                  aria-label={`Xem ${product.name}`}
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative h-48 bg-gray-200">
@@ -182,7 +182,7 @@ export default async function BuyerHome() {
                         <img src={image} alt={product.name} className="w-full h-full object-cover" />
                       ) : null}
                       <div className="absolute top-2 right-2 bg-buyer-accent text-gray-800 text-xs font-bold px-2 py-1 rounded-full">
-                        HOT
+                        NỔI BẬT
                       </div>
                     </div>
                     <CardContent className="p-4">
@@ -222,18 +222,18 @@ export default async function BuyerHome() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div>
             <TrendingUp className="text-buyer-primary mx-auto mb-3" size={32} />
-            <h3 className="font-semibold text-gray-800 mb-1">Best Prices</h3>
-            <p className="text-sm text-gray-600">Competitive pricing guaranteed</p>
+            <h3 className="font-semibold text-gray-800 mb-1">Giá tốt nhất</h3>
+            <p className="text-sm text-gray-600">Giá cạnh tranh, đảm bảo</p>
           </div>
           <div>
             <Star className="text-buyer-primary mx-auto mb-3" size={32} />
-            <h3 className="font-semibold text-gray-800 mb-1">Quality Assured</h3>
-            <p className="text-sm text-gray-600">Verified sellers only</p>
+            <h3 className="font-semibold text-gray-800 mb-1">Chất lượng đảm bảo</h3>
+            <p className="text-sm text-gray-600">Chỉ người bán đã xác minh</p>
           </div>
           <div>
             <ShoppingBag className="text-buyer-primary mx-auto mb-3" size={32} />
-            <h3 className="font-semibold text-gray-800 mb-1">Fast Delivery</h3>
-            <p className="text-sm text-gray-600">Quick and reliable shipping</p>
+            <h3 className="font-semibold text-gray-800 mb-1">Giao hàng nhanh</h3>
+            <p className="text-sm text-gray-600">Giao nhanh và đáng tin cậy</p>
           </div>
         </div>
       </section>

@@ -122,7 +122,7 @@ export default function ProfilePage() {
         gender: response.data.gender || "",
         birthday: response.data.birthday || "",
       })
-      setToast({ message: "Profile updated successfully!", variant: "success" })
+      setToast({ message: "Cập nhật hồ sơ thành công!", variant: "success" })
       window.setTimeout(() => setToast(null), 2500)
     }
     setSaving(false)
@@ -248,7 +248,7 @@ export default function ProfilePage() {
     const ward = wards.find((item) => item.id === Number(addressForm.wardId))
 
     if (!province || !district || !ward || !addressForm.address.trim()) {
-      setAddressError("Please complete all address fields.")
+      setAddressError("Vui lòng điền đầy đủ thông tin địa chỉ.")
       return
     }
 
@@ -258,7 +258,7 @@ export default function ProfilePage() {
     const fullName =
       user?.fullName ||
       `${user?.firstName || ""} ${user?.lastName || ""}`.trim() ||
-      "Default"
+      "Mặc định"
 
     const payload = {
       name: fullName,
@@ -278,7 +278,7 @@ export default function ProfilePage() {
     } else if (response.data) {
       setExistingAddress(response.data)
       setToast({
-        message: existingAddress ? "Address updated successfully!" : "Address saved successfully!",
+        message: existingAddress ? "Cập nhật địa chỉ thành công!" : "Lưu địa chỉ thành công!",
         variant: "success",
       })
       window.setTimeout(() => setToast(null), 2500)
@@ -341,7 +341,7 @@ export default function ProfilePage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading profile...</p>
+          <p className="text-gray-600">Đang tải hồ sơ...</p>
         </div>
       </div>
     )
@@ -356,7 +356,7 @@ export default function ProfilePage() {
           onClose={() => setToast(null)}
         />
       ) : null}
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">Hồ sơ của tôi</h1>
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
           {error}
@@ -367,11 +367,11 @@ export default function ProfilePage() {
           {/* Personal Information */}
           <Card>
             <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>Thông tin cá nhân</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">Họ</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -379,7 +379,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">Tên</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -387,7 +387,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Label htmlFor="phoneNumber">Số điện thoại</Label>
               <Input
                 id="phoneNumber"
                 type="tel"
@@ -396,7 +396,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <Label htmlFor="email">Email (read only)</Label>
+              <Label htmlFor="email">Email (chỉ đọc)</Label>
               <Input
                 id="email"
                 type="email"
@@ -405,7 +405,7 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <Label>Upload Avatar</Label>
+              <Label>Tải ảnh đại diện</Label>
               <div className="flex items-center gap-2">
                 <input
                   ref={fileInputRef}
@@ -420,29 +420,29 @@ export default function ProfilePage() {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
-                  {uploading ? "Uploading..." : "Choose Image"}
+                  {uploading ? "Đang tải lên..." : "Chọn ảnh"}
                 </Button>
                 <span className="text-sm text-gray-500">
-                  {formData.avatar ? "Uploaded" : "No file chosen"}
+                  {formData.avatar ? "Đã tải lên" : "Chưa chọn tệp"}
                 </span>
               </div>
             </div>
             <div>
-              <Label htmlFor="gender">Gender</Label>
+              <Label htmlFor="gender">Giới tính</Label>
               <select
                 id="gender"
                 className="w-full h-10 px-3 border rounded-md bg-white"
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value as "" | "MALE" | "FEMALE" | "OTHER" })}
               >
-                <option value="">Select gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
+                <option value="">Chọn giới tính</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+                <option value="OTHER">Khác</option>
               </select>
             </div>
             <div>
-              <Label htmlFor="birthday">Birthday</Label>
+              <Label htmlFor="birthday">Ngày sinh</Label>
               <Input
                 id="birthday"
                 type="date"
@@ -451,7 +451,7 @@ export default function ProfilePage() {
               />
             </div>
             <Button variant="buyer" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? "Đang lưu..." : "Lưu thay đổi"}
             </Button>
           </CardContent>
         </Card>
@@ -459,7 +459,7 @@ export default function ProfilePage() {
           {/* Address */}
           <Card>
             <CardHeader>
-              <CardTitle>Address</CardTitle>
+              <CardTitle>Địa chỉ</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {addressError && (
@@ -468,10 +468,10 @@ export default function ProfilePage() {
                 </div>
               )}
               {addressLoading && (
-                <p className="text-sm text-gray-600">Loading address...</p>
+                <p className="text-sm text-gray-600">Đang tải địa chỉ...</p>
               )}
               <div>
-                <Label htmlFor="province">Province</Label>
+                <Label htmlFor="province">Tỉnh/Thành</Label>
                 <select
                   id="province"
                   className="w-full h-10 px-3 border rounded-md bg-white"
@@ -487,7 +487,7 @@ export default function ProfilePage() {
                   disabled={provincesLoading}
                 >
                   <option value="">
-                    {provincesLoading ? "Loading provinces..." : "Select province"}
+                    {provincesLoading ? "Đang tải tỉnh/thành..." : "Chọn tỉnh/thành"}
                   </option>
                   {provinces.map((province) => (
                     <option key={province.id} value={province.id}>
@@ -497,7 +497,7 @@ export default function ProfilePage() {
                 </select>
               </div>
               <div>
-                <Label htmlFor="district">District</Label>
+                <Label htmlFor="district">Quận/Huyện</Label>
                 <select
                   id="district"
                   className="w-full h-10 px-3 border rounded-md bg-white"
@@ -513,10 +513,10 @@ export default function ProfilePage() {
                 >
                   <option value="">
                     {!addressForm.provinceId
-                      ? "Select province first"
+                      ? "Chọn tỉnh/thành trước"
                       : districtsLoading
-                        ? "Loading districts..."
-                        : "Select district"}
+                        ? "Đang tải quận/huyện..."
+                        : "Chọn quận/huyện"}
                   </option>
                   {districts.map((district) => (
                     <option key={district.id} value={district.id}>
@@ -526,7 +526,7 @@ export default function ProfilePage() {
                 </select>
               </div>
               <div>
-                <Label htmlFor="ward">Ward</Label>
+                <Label htmlFor="ward">Phường/Xã</Label>
                 <select
                   id="ward"
                   className="w-full h-10 px-3 border rounded-md bg-white"
@@ -541,10 +541,10 @@ export default function ProfilePage() {
                 >
                   <option value="">
                     {!addressForm.districtId
-                      ? "Select district first"
+                      ? "Chọn quận/huyện trước"
                       : wardsLoading
-                        ? "Loading wards..."
-                        : "Select ward"}
+                        ? "Đang tải phường/xã..."
+                        : "Chọn phường/xã"}
                   </option>
                   {wards.map((ward) => (
                     <option key={ward.id} value={ward.id}>
@@ -554,10 +554,10 @@ export default function ProfilePage() {
                 </select>
               </div>
               <div>
-                <Label htmlFor="addressDetail">Address</Label>
+                <Label htmlFor="addressDetail">Địa chỉ</Label>
                 <Input
                   id="addressDetail"
-                  placeholder="Street, building, house number..."
+                  placeholder="Số nhà, đường, tòa nhà..."
                   value={addressForm.address}
                   onChange={(e) =>
                     setAddressForm((prev) => ({
@@ -573,10 +573,10 @@ export default function ProfilePage() {
                 disabled={!isAddressComplete || addressSaving || addressLoading}
               >
                 {addressSaving
-                  ? "Saving..."
+                  ? "Đang lưu..."
                   : existingAddress
-                    ? "Update Address"
-                    : "Save Address"}
+                    ? "Cập nhật địa chỉ"
+                    : "Lưu địa chỉ"}
               </Button>
             </CardContent>
           </Card>
@@ -584,7 +584,7 @@ export default function ProfilePage() {
           {/* Change Password */}
           <Card>
             <CardHeader>
-              <CardTitle>Change Password</CardTitle>
+            <CardTitle>Đổi mật khẩu</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <PasswordChangeForm userEmail={user?.email || ""} />
@@ -600,7 +600,7 @@ export default function ProfilePage() {
                 {formData.avatar || user?.avatar ? (
                   <img 
                     src={formData.avatar || user?.avatar || ""} 
-                    alt={user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}` || "User"} 
+                    alt={user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}` || "Người dùng"} 
                     className="w-full h-full rounded-full object-cover" 
                   />
                 ) : (
@@ -617,7 +617,7 @@ export default function ProfilePage() {
                 {user?.fullName || 
                  (user?.firstName && user?.lastName 
                    ? `${user.firstName} ${user.lastName}` 
-                   : user?.firstName || user?.lastName || "User")}
+                   : user?.firstName || user?.lastName || "Người dùng")}
               </h3>
               <p className="text-sm text-gray-600 mb-4">{user?.email || ""}</p>
             </CardContent>
@@ -642,22 +642,22 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
 
   const handleSendOTP = async () => {
     if (!userEmail) {
-      setError("Email is required")
+      setError("Vui lòng nhập email")
       return
     }
 
     if (!passwords.newPassword) {
-      setError("New password is required")
+      setError("Vui lòng nhập mật khẩu mới")
       return
     }
 
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setError("Passwords do not match")
+      setError("Mật khẩu không khớp")
       return
     }
 
     if (passwords.newPassword.length < 8) {
-      setError("Password must be at least 8 characters")
+      setError("Mật khẩu phải có ít nhất 8 ký tự")
       return
     }
 
@@ -677,19 +677,19 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
       setStep("otp")
       setSendingOTP(false)
     } else {
-      setError("Failed to send OTP. Please try again.")
+      setError("Gửi OTP thất bại. Vui lòng thử lại.")
       setSendingOTP(false)
     }
   }
 
   const handleSubmit = async () => {
     if (!passwords.code) {
-      setError("OTP code is required")
+      setError("Vui lòng nhập mã OTP")
       return
     }
 
     if (!processId) {
-      setError("Invalid request. Please start over.")
+      setError("Yêu cầu không hợp lệ. Vui lòng thử lại từ đầu.")
       return
     }
 
@@ -706,7 +706,7 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
     if (response.error) {
       setError(typeof response.error === "string" ? response.error : String(response.error))
     } else {
-      alert("Password updated successfully!")
+      alert("Cập nhật mật khẩu thành công!")
       setPasswords({ newPassword: "", confirmPassword: "", code: "" })
       setStep("form")
       setProcessId("")
@@ -729,21 +729,21 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
       {step === "form" ? (
         <>
           <div>
-            <Label htmlFor="newPassword">New Password</Label>
+            <Label htmlFor="newPassword">Mật khẩu mới</Label>
             <Input
               id="newPassword"
               type="password"
-              placeholder="Enter new password"
+              placeholder="Nhập mật khẩu mới"
               value={passwords.newPassword}
               onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
             />
           </div>
           <div>
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
             <Input
               id="confirmPassword"
               type="password"
-              placeholder="Confirm new password"
+              placeholder="Nhập lại mật khẩu mới"
               value={passwords.confirmPassword}
               onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
             />
@@ -754,22 +754,22 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
             disabled={sendingOTP || !passwords.newPassword || !passwords.confirmPassword}
             className="w-full"
           >
-            {sendingOTP ? "Sending OTP..." : "Send OTP Code"}
+            {sendingOTP ? "Đang gửi OTP..." : "Gửi mã OTP"}
           </Button>
           {userEmail && (
             <p className="text-sm text-gray-600 text-center">
-              OTP will be sent to: {userEmail}
+              Mã OTP sẽ được gửi tới: {userEmail}
             </p>
           )}
         </>
       ) : (
         <>
           <div>
-            <Label htmlFor="code">OTP Code</Label>
+            <Label htmlFor="code">Mã OTP</Label>
             <Input
               id="code"
               type="text"
-              placeholder="Enter OTP code"
+              placeholder="Nhập mã OTP"
               value={passwords.code}
               onChange={(e) => setPasswords({ ...passwords, code: e.target.value })}
               maxLength={6}
@@ -782,14 +782,14 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
               disabled={saving || !passwords.code}
               className="flex-1"
             >
-              {saving ? "Updating..." : "Update Password"}
+              {saving ? "Đang cập nhật..." : "Cập nhật mật khẩu"}
             </Button>
             <Button 
               variant="outline" 
               onClick={handleResendOTP} 
               disabled={sendingOTP}
             >
-              Resend
+              Gửi lại
             </Button>
           </div>
           <Button 
@@ -801,7 +801,7 @@ function PasswordChangeForm({ userEmail }: { userEmail: string }) {
             }}
             className="w-full"
           >
-            Back
+            Quay lại
           </Button>
         </>
       )}

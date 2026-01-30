@@ -5,18 +5,18 @@ import { Package, Truck, CheckCircle2, Circle } from "lucide-react"
 
 export default function OrderDetailPage({ params }: { params: { id: string } }) {
   const steps = [
-    { label: "Order Confirmed", completed: true },
-    { label: "Processing", completed: true },
-    { label: "Shipped", completed: true },
-    { label: "In Transit", completed: true, active: true },
-    { label: "Delivered", completed: false },
+    { label: "Đã xác nhận", completed: true },
+    { label: "Đang xử lý", completed: true },
+    { label: "Đã giao cho vận chuyển", completed: true },
+    { label: "Đang vận chuyển", completed: true, active: true },
+    { label: "Đã giao", completed: false },
   ]
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Order Details</h1>
-        <Button variant="outline">Print Invoice</Button>
+        <h1 className="text-3xl font-bold text-gray-800">Chi tiết đơn hàng</h1>
+        <Button variant="outline">In hóa đơn</Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -25,7 +25,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           {/* Order Timeline */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-6">Order Status</h2>
+              <h2 className="text-xl font-semibold mb-6">Trạng thái đơn hàng</h2>
               <div className="space-y-4">
                 {steps.map((step, index) => (
                   <div key={index} className="flex items-start gap-4">
@@ -53,7 +53,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                       </h3>
                       {step.active && (
                         <p className="text-sm text-gray-600 mt-1">
-                          Tracking: TRACK123456789
+                          Mã vận đơn: TRACK123456789
                         </p>
                       )}
                     </div>
@@ -66,14 +66,14 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
           {/* Order Items */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Order Items</h2>
+              <h2 className="text-xl font-semibold mb-4">Sản phẩm trong đơn</h2>
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="flex gap-4 pb-4 border-b last:border-0">
                     <div className="w-20 h-20 bg-gray-200 rounded-lg"></div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800">Product Name {i}</h3>
-                      <p className="text-sm text-gray-600">Quantity: 1</p>
+                      <h3 className="font-semibold text-gray-800">Tên sản phẩm {i}</h3>
+                      <p className="text-sm text-gray-600">Số lượng: 1</p>
                       <p className="text-buyer-primary font-semibold mt-1">$79.99</p>
                     </div>
                   </div>
@@ -87,28 +87,28 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
         <div className="space-y-6">
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
+              <h2 className="text-xl font-semibold mb-4">Địa chỉ giao hàng</h2>
               <p className="text-gray-600">
                 123 Main Street<br />
-                City, State 12345<br />
-                United States
+                Thành phố, Bang 12345<br />
+                Hoa Kỳ
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Payment Information</h2>
+              <h2 className="text-xl font-semibold mb-4">Thông tin thanh toán</h2>
               <p className="text-gray-600">
-                Card ending in 3456<br />
-                Total: $269.97
+                Thẻ kết thúc bằng 3456<br />
+                Tổng: $269.97
               </p>
             </CardContent>
           </Card>
 
           <div className="flex gap-2">
-            <Button variant="buyer" className="flex-1">Track Order</Button>
-            <Button variant="outline" className="flex-1">Contact Seller</Button>
+            <Button variant="buyer" className="flex-1">Theo dõi đơn hàng</Button>
+            <Button variant="outline" className="flex-1">Liên hệ người bán</Button>
           </div>
         </div>
       </div>

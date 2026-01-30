@@ -72,28 +72,28 @@ export function BuyerHeader() {
     const type = normalizeNotificationType(notification.type)
     switch (type) {
       case "order":
-        return "Order update"
+        return "Cập nhật đơn hàng"
       case "promotion":
-        return "Promotion"
+        return "Khuyến mãi"
       case "wallet":
-        return "Wallet update"
+        return "Cập nhật ví"
       case "system":
-        return "System update"
+        return "Cập nhật hệ thống"
       case "message":
-        return "New message"
+        return "Tin nhắn mới"
       default:
-        return "Notification"
+        return "Thông báo"
     }
   }
 
   const getNotificationMessage = (notification: Notification) => {
-    return notification.description || notification.message || "You have a new notification."
+    return notification.description || notification.message || "Bạn có thông báo mới."
   }
 
   const formatNotificationTime = (timestamp?: string) => {
-    if (!timestamp) return "Just now"
+    if (!timestamp) return "Vừa xong"
     const date = new Date(timestamp)
-    if (Number.isNaN(date.getTime())) return "Just now"
+    if (Number.isNaN(date.getTime())) return "Vừa xong"
     return date.toLocaleString("vi-VN")
   }
 
@@ -324,45 +324,49 @@ export function BuyerHeader() {
               href="/buyer"
               className="text-buyer-primary font-semibold hover:text-buyer-primary/80"
             >
-              Home
+              Trang chủ
             </Link>
             <Link
               href="/buyer/products"
               className="text-gray-700 hover:text-buyer-primary transition-colors font-medium"
             >
-              Products
+              Sản phẩm
             </Link>
             <Link
               href="/buyer/categories"
               className="text-gray-700 hover:text-buyer-primary transition-colors font-medium"
             >
-              Categories
+              Danh mục
             </Link>
             <Link
-              href="/buyer/deals"
+              href="/buyer/videos"
               className="text-gray-700 hover:text-buyer-primary transition-colors font-medium"
             >
-              Deals
+              Video
             </Link>
             <Link
               href="/buyer/chat"
               className="text-gray-700 hover:text-buyer-primary transition-colors font-medium"
             >
-              Chat
+              Trò chuyện
             </Link>
             <Link
               href="/buyer/orders"
               className="text-gray-700 hover:text-buyer-primary transition-colors font-medium"
             >
-              Orders
+              Đơn hàng
             </Link>
           </nav>
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <button className="hidden md:block text-gray-700 hover:text-buyer-primary">
+            <Link
+              href="/buyer/products"
+              className="hidden md:block text-gray-700 hover:text-buyer-primary"
+              aria-label="Trang tìm kiếm sản phẩm"
+            >
               <Search size={24} />
-            </button>
+            </Link>
             <Link
               href="/buyer/cart"
               className="relative text-gray-700 hover:text-buyer-primary"
@@ -379,7 +383,7 @@ export function BuyerHeader() {
                 <button
                   className="relative text-gray-700 hover:text-buyer-primary"
                   onClick={() => setNotificationOpen((prev) => !prev)}
-                  aria-label="Toggle notifications"
+                  aria-label="Bật/tắt thông báo"
                 >
                   <Bell size={24} />
                   {unreadCount > 0 ? (
@@ -391,22 +395,22 @@ export function BuyerHeader() {
                 {notificationOpen ? (
                   <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                      <span className="font-semibold text-gray-800">Notifications</span>
+                      <span className="font-semibold text-gray-800">Thông báo</span>
                       <Link
                         href="/buyer/notifications"
                         className="text-sm text-buyer-primary hover:underline"
                         onClick={() => setNotificationOpen(false)}
                       >
-                        View all
+                        Xem tất cả
                       </Link>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notificationLoading ? (
-                        <div className="px-4 py-6 text-center text-sm text-gray-500">Loading notifications...</div>
+                        <div className="px-4 py-6 text-center text-sm text-gray-500">Đang tải thông báo...</div>
                       ) : notificationError ? (
                         <div className="px-4 py-6 text-center text-sm text-red-500">{notificationError}</div>
                       ) : dropdownNotifications.length === 0 ? (
-                        <div className="px-4 py-6 text-center text-sm text-gray-500">No notifications yet</div>
+                        <div className="px-4 py-6 text-center text-sm text-gray-500">Chưa có thông báo</div>
                       ) : (
                         dropdownNotifications.map((notification) => {
                           const unread = isNotificationUnread(notification)
@@ -455,7 +459,7 @@ export function BuyerHeader() {
                     <User size={20} />
                   </Button>
                 </Link>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                <Button variant="ghost" size="icon" onClick={handleLogout} title="Đăng xuất">
                   <LogOut size={20} />
                 </Button>
               </>
@@ -463,7 +467,7 @@ export function BuyerHeader() {
               <Link href="/buyer/login">
                 <Button variant="buyer" size="sm">
                   <LogIn className="mr-2" size={16} />
-                  Login
+                  Đăng nhập
                 </Button>
               </Link>
             )}
@@ -478,42 +482,42 @@ export function BuyerHeader() {
               className="block px-4 py-2 text-buyer-primary font-semibold"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Home
+              Trang chủ
             </Link>
             <Link
               href="/buyer/products"
               className="block px-4 py-2 text-gray-700 hover:text-buyer-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Products
+              Sản phẩm
             </Link>
             <Link
               href="/buyer/categories"
               className="block px-4 py-2 text-gray-700 hover:text-buyer-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Categories
+              Danh mục
             </Link>
             <Link
-              href="/buyer/deals"
+              href="/buyer/videos"
               className="block px-4 py-2 text-gray-700 hover:text-buyer-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Deals
+              Video
             </Link>
             <Link
               href="/buyer/chat"
               className="block px-4 py-2 text-gray-700 hover:text-buyer-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Chat
+              Trò chuyện
             </Link>
             <Link
               href="/buyer/orders"
               className="block px-4 py-2 text-gray-700 hover:text-buyer-primary"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Orders
+              Đơn hàng
             </Link>
             {isAuthenticated ? (
               <>
@@ -522,7 +526,7 @@ export function BuyerHeader() {
                   className="block px-4 py-2 text-gray-700 hover:text-buyer-primary"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Profile
+                  Hồ sơ
                 </Link>
                 <button
                   className="block w-full text-left px-4 py-2 text-gray-700 hover:text-buyer-primary"
@@ -531,7 +535,7 @@ export function BuyerHeader() {
                     setMobileMenuOpen(false)
                   }}
                 >
-                  Logout
+                  Đăng xuất
                 </button>
               </>
             ) : (
@@ -540,7 +544,7 @@ export function BuyerHeader() {
                 className="block px-4 py-2 text-buyer-primary font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Login
+                Đăng nhập
               </Link>
             )}
           </nav>

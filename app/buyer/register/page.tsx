@@ -35,19 +35,19 @@ export default function RegisterPage() {
 
     // Validation
     if (!formData.email) {
-      setError("Email is required")
+      setError("Vui lòng nhập email")
       setSendingOTP(false)
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
+      setError("Mật khẩu không khớp")
       setSendingOTP(false)
       return
     }
 
     if (!formData.username || !formData.firstName || !formData.lastName) {
-      setError("Please fill in all required fields")
+      setError("Vui lòng điền đầy đủ các trường bắt buộc")
       setSendingOTP(false)
       return
     }
@@ -68,7 +68,7 @@ export default function RegisterPage() {
       setProcessId(response.data.processId)
       setStep("otp")
     } else {
-      setError("Failed to send OTP. Please try again.")
+      setError("Gửi OTP thất bại. Vui lòng thử lại.")
     }
     setSendingOTP(false)
   }
@@ -79,7 +79,7 @@ export default function RegisterPage() {
     setError(null)
 
     if (!formData.code) {
-      setError("Please enter the OTP code")
+      setError("Vui lòng nhập mã OTP")
       setLoading(false)
       return
     }
@@ -138,9 +138,9 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
+          <CardTitle className="text-3xl font-bold">Tạo tài khoản</CardTitle>
           <CardDescription>
-            {step === "form" ? "Sign up to get started" : "Enter OTP code sent to your email"}
+            {step === "form" ? "Đăng ký để bắt đầu" : "Nhập mã OTP đã gửi đến email"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -153,11 +153,11 @@ export default function RegisterPage() {
           {step === "form" ? (
             <form className="space-y-4" onSubmit={handleSendOTP}>
               <div className="space-y-2">
-                <Label htmlFor="username">Username *</Label>
+                <Label htmlFor="username">Tên đăng nhập *</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter username"
+                  placeholder="Nhập tên đăng nhập"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   required
@@ -165,22 +165,22 @@ export default function RegisterPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="firstName">Họ *</Label>
                   <Input
                     id="firstName"
                     type="text"
-                    placeholder="First name"
+                    placeholder="Họ"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName">Tên *</Label>
                   <Input
                     id="lastName"
                     type="text"
-                    placeholder="Last name"
+                    placeholder="Tên"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     required
@@ -192,24 +192,24 @@ export default function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Nhập email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber">Phone Number</Label>
+                <Label htmlFor="phoneNumber">Số điện thoại</Label>
                 <Input
                   id="phoneNumber"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="Nhập số điện thoại"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="gender">Gender *</Label>
+                <Label htmlFor="gender">Giới tính *</Label>
                 <select
                   id="gender"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
@@ -219,28 +219,28 @@ export default function RegisterPage() {
                   }
                   required
                 >
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
+                  <option value="MALE">Nam</option>
+                  <option value="FEMALE">Nữ</option>
+                  <option value="OTHER">Khác</option>
                 </select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">Mật khẩu *</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password"
+                  placeholder="Tạo mật khẩu"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="Confirm your password"
+                  placeholder="Nhập lại mật khẩu"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   required
@@ -249,34 +249,34 @@ export default function RegisterPage() {
               <div className="flex items-center space-x-2">
                 <input type="checkbox" id="terms" className="rounded" required />
                 <Label htmlFor="terms" className="text-sm font-normal">
-                  I agree to the{" "}
+                  Tôi đồng ý với{" "}
                   <Link href="/terms" className="text-buyer-primary hover:underline">
-                    Terms & Conditions
+                    Điều khoản & Điều kiện
                   </Link>
                 </Label>
               </div>
               <Button type="submit" variant="buyer" className="w-full" size="lg" disabled={sendingOTP}>
-                {sendingOTP ? "Sending OTP..." : "Send OTP Code"}
+                {sendingOTP ? "Đang gửi OTP..." : "Gửi mã OTP"}
               </Button>
               <p className="text-center text-sm text-gray-600">
-                Already have an account?{" "}
+                Đã có tài khoản?{" "}
                 <Link href="/buyer/login" className="text-buyer-primary hover:underline font-medium">
-                  Sign in
+                  Đăng nhập
                 </Link>
               </p>
             </form>
           ) : (
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800 mb-4">
-                <p>We've sent a verification code to <strong>{formData.email}</strong></p>
-                <p className="mt-1">Please check your email and enter the code below.</p>
+                <p>Chúng tôi đã gửi mã xác minh tới <strong>{formData.email}</strong></p>
+                <p className="mt-1">Vui lòng kiểm tra email và nhập mã bên dưới.</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="code">OTP Code *</Label>
+                <Label htmlFor="code">Mã OTP *</Label>
                 <Input
                   id="code"
                   type="text"
-                  placeholder="Enter 6-digit code"
+                  placeholder="Nhập mã 6 chữ số"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   maxLength={6}
@@ -290,7 +290,7 @@ export default function RegisterPage() {
                   className="flex-1"
                   onClick={() => setStep("form")}
                 >
-                  Back
+                  Quay lại
                 </Button>
                 <Button
                   type="button"
@@ -299,11 +299,11 @@ export default function RegisterPage() {
                   onClick={handleResendOTP}
                   disabled={sendingOTP}
                 >
-                  {sendingOTP ? "Sending..." : "Resend Code"}
+                  {sendingOTP ? "Đang gửi..." : "Gửi lại mã"}
                 </Button>
               </div>
               <Button type="submit" variant="buyer" className="w-full" size="lg" disabled={loading}>
-                {loading ? "Creating account..." : "Complete Registration"}
+                {loading ? "Đang tạo tài khoản..." : "Hoàn tất đăng ký"}
               </Button>
             </form>
           )}

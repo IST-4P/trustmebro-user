@@ -15,7 +15,7 @@ export default function CartPage() {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const limit = 10
-  const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} ₫`
+  const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} VND`
   const emitCartUpdated = (itemCount?: number) => {
     if (typeof window === "undefined") return
     const detail = typeof itemCount === "number" ? { itemCount } : undefined
@@ -107,10 +107,10 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Shopping Cart</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">Giỏ hàng</h1>
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading cart...</p>
+          <p className="text-gray-600">Đang tải giỏ hàng...</p>
         </div>
       ) : error ? (
         <div className="text-center py-12">
@@ -118,7 +118,7 @@ export default function CartPage() {
         </div>
       ) : !cart || cart.items.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Your cart is empty</p>
+          <p className="text-gray-600">Giỏ hàng trống</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -191,7 +191,7 @@ export default function CartPage() {
                     disabled={page <= 1}
                     onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   >
-                    Previous
+                    Trước
                   </Button>
                   {pages.map((pageNumber) => (
                     <Button
@@ -207,10 +207,10 @@ export default function CartPage() {
                     disabled={page >= totalPages}
                     onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   >
-                    Next
+                    Sau
                   </Button>
                   <span className="text-sm text-gray-500 ml-2">
-                    Page {page} / {totalPages}
+                    Trang {page} / {totalPages}
                   </span>
                 </div>
               )
@@ -221,18 +221,18 @@ export default function CartPage() {
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardContent className="p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Tóm tắt đơn hàng</h2>
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Subtotal</span>
+                    <span className="text-gray-600">Tạm tính</span>
                     <span>{formatVnd(cart.total || 0)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Items</span>
+                    <span className="text-gray-600">Sản phẩm</span>
                     <span>{cart.itemCount}</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between font-bold text-lg">
-                    <span>Total</span>
+                    <span>Tổng cộng</span>
                     <span className="text-buyer-primary">{formatVnd(cart.total || 0)}</span>
                   </div>
                 </div>
@@ -242,7 +242,7 @@ export default function CartPage() {
                   className="w-full"
                   onClick={handleProceedToCheckout}
                 >
-                  Proceed to Checkout
+                  Tiến hành thanh toán
                 </Button>
               </CardContent>
             </Card>

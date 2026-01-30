@@ -21,7 +21,7 @@ const STATUS_TABS = [
   { key: "REFUNDED", label: "Hoàn tiền" },
 ]
 
-const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} ₫`
+const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} VND`
 
 const normalizeStatus = (status?: string) => (status || "").toUpperCase()
 
@@ -165,6 +165,8 @@ export default function OrdersPage() {
             const itemCount = order.itemsSnapshot?.length ?? order.items?.length
             const image = order.firstProductImage || order.itemsSnapshot?.[0]?.productImage || ""
             const name = order.firstProductName || order.itemsSnapshot?.[0]?.productName || "Đơn hàng"
+            const normalizedStatus = (order.status || "").toUpperCase()
+            const canReview = normalizedStatus === "COMPLETED"
 
             return (
               <Card key={order.id}>
@@ -197,9 +199,14 @@ export default function OrdersPage() {
                         <Badge variant="outline">Tổng: {formatVnd(total)}</Badge>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Link href={`/buyer/checkout?orderId=${order.id}`}>
+                        <Link href={`/buyer/orders/${order.id}`}>
                           <Button variant="outline" size="sm">Xem chi tiết</Button>
                         </Link>
+                        {canReview ? (
+                          <Link href={`/buyer/orders/${order.id}/review`}>
+                            <Button variant="buyer" size="sm">Đánh giá</Button>
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
                   </div>

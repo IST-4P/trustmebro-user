@@ -89,14 +89,14 @@ export default function CategoriesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">Categories</h1>
+          <h1 className="text-3xl font-bold text-gray-800">Danh mục</h1>
           <p className="text-gray-600 mt-1">
-            Browse by category to find products faster.
+            Duyệt theo danh mục để tìm sản phẩm nhanh hơn.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="info">{categories.length} total</Badge>
-          <Badge variant="secondary">{topLevelCount} top level</Badge>
+          <Badge variant="info">{categories.length} tổng</Badge>
+          <Badge variant="secondary">{topLevelCount} cấp 1</Badge>
           <Button
             type="button"
             variant="buyerOutline"
@@ -105,7 +105,7 @@ export default function CategoriesPage() {
             disabled={loading}
           >
             <RefreshCcw className="mr-2" size={16} />
-            Refresh
+            Làm mới
           </Button>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function CategoriesPage() {
           <div className="relative w-full sm:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <Input
-              placeholder="Search categories..."
+              placeholder="Tìm danh mục..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className="pl-10"
@@ -128,7 +128,7 @@ export default function CategoriesPage() {
               variant={filterMode === "all" ? "buyer" : "outline"}
               onClick={() => setFilterMode("all")}
             >
-              All
+              Tất cả
             </Button>
             <Button
               type="button"
@@ -136,7 +136,7 @@ export default function CategoriesPage() {
               variant={filterMode === "top" ? "buyer" : "outline"}
               onClick={() => setFilterMode("top")}
             >
-              Top level
+              Cấp 1
             </Button>
             <Button
               type="button"
@@ -144,7 +144,7 @@ export default function CategoriesPage() {
               variant={filterMode === "sub" ? "buyer" : "outline"}
               onClick={() => setFilterMode("sub")}
             >
-              Subcategories
+              Danh mục con
             </Button>
           </div>
         </div>
@@ -153,15 +153,15 @@ export default function CategoriesPage() {
           value={sortMode}
           onChange={(event) => setSortMode(event.target.value as SortMode)}
         >
-          <option value="name-asc">Sort: Name A-Z</option>
-          <option value="name-desc">Sort: Name Z-A</option>
-          <option value="newest">Sort: Newest</option>
+          <option value="name-asc">Sắp xếp: Tên A-Z</option>
+          <option value="name-desc">Sắp xếp: Tên Z-A</option>
+          <option value="newest">Sắp xếp: Mới nhất</option>
         </select>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading categories...</p>
+          <p className="text-gray-600">Đang tải danh mục...</p>
         </div>
       ) : error ? (
         <div className="text-center py-12">
@@ -169,7 +169,7 @@ export default function CategoriesPage() {
         </div>
       ) : filteredCategories.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No categories found</p>
+          <p className="text-gray-600">Không tìm thấy danh mục</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -188,7 +188,7 @@ export default function CategoriesPage() {
                         {image ? (
                           <img
                             src={image}
-                            alt={category.name || "Category"}
+                            alt={category.name || "Danh mục"}
                             className="w-full h-full object-contain p-2"
                           />
                         ) : (
@@ -197,14 +197,14 @@ export default function CategoriesPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-800">
-                          {category.name || "Category"}
+                          {category.name || "Danh mục"}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          {category.description || "Browse products in this category."}
+                          {category.description || "Xem sản phẩm trong danh mục này."}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
                           <Badge variant={isTopLevel ? "info" : "secondary"}>
-                            {isTopLevel ? "Top level" : "Subcategory"}
+                            {isTopLevel ? "Cấp 1" : "Danh mục con"}
                           </Badge>
                           {category.slug ? (
                             <span className="text-xs text-gray-500">/{category.slug}</span>
@@ -213,7 +213,7 @@ export default function CategoriesPage() {
                       </div>
                     </div>
                     <div className="mt-4 flex items-center justify-between text-sm text-buyer-primary">
-                      <span className="font-medium">View products</span>
+                      <span className="font-medium">Xem sản phẩm</span>
                       <ArrowRight size={16} />
                     </div>
                   </CardContent>

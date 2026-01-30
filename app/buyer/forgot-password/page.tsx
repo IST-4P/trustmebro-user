@@ -10,9 +10,9 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Forgot Password</CardTitle>
+          <CardTitle className="text-3xl font-bold">Quên mật khẩu</CardTitle>
           <CardDescription>
-            Enter your email to receive a password reset link
+            Nhập email để nhận liên kết đặt lại mật khẩu
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -20,18 +20,18 @@ export default function ForgotPasswordPage() {
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
               <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
               <p className="text-sm text-blue-800">
-                We'll send you a link to reset your password. Please check your email inbox.
+                Chúng tôi sẽ gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra hộp thư email.
               </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="Enter your email" />
+              <Input id="email" type="email" placeholder="Nhập email" />
             </div>
             <Button type="submit" variant="buyer" className="w-full" size="lg">
-              Send Reset Link
+              Gửi liên kết đặt lại
             </Button>
             <Link href="/buyer/login" className="block text-center text-sm text-gray-600 hover:text-buyer-primary">
-              Back to login
+              Quay lại đăng nhập
             </Link>
           </form>
         </CardContent>

@@ -5,8 +5,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TrustMeBro - Your Trusted Marketplace",
-  description: "Multi-vendor e-commerce platform",
+  title: "TrustMeBro - Chợ trực tuyến tin cậy",
+  description: "Nền tảng thương mại điện tử đa nhà bán",
 }
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="vi" suppressHydrationWarning>
       <body className={`${inter.className} app-shell`}>{children}</body>
     </html>
   )

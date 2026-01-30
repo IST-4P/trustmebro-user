@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Toast } from "@/components/ui/toast"
-import { CheckCircle2 } from "lucide-react"
+import { ArrowLeft, CheckCircle2 } from "lucide-react"
 import { api } from "@/lib/api"
 import type { Cart, Order, Payment, Promotion, User } from "@/lib/types"
 
@@ -92,7 +93,7 @@ export default function CheckoutPage() {
     }
   }, [shippingMethod])
 
-  const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} ₫`
+  const formatVnd = (value: number) => `${Math.round(value).toLocaleString("vi-VN")} VND`
 
   const splitName = (fullName: string) => {
     const normalized = fullName.trim()
@@ -695,7 +696,7 @@ export default function CheckoutPage() {
       return cart.items.map((item) => ({
         id: item.id,
         productImage: item.productImage || item.product?.images?.[0],
-        productName: item.productName || item.product?.name || "Product",
+        productName: item.productName || item.product?.name || "Sản phẩm",
         skuValue: item.skuValue,
         quantity: item.quantity,
         price: item.price,
@@ -1008,6 +1009,42 @@ export default function CheckoutPage() {
     }
   }
 
+  const statusBadgeVariant = (
+    status?: string
+  ): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "error" | "info" => {
+    const normalized = (status || "").toUpperCase()
+    if (normalized === "CREATING") return "secondary"
+    if (normalized === "PENDING") return "warning"
+    if (normalized === "CONFIRMED") return "info"
+    if (normalized === "SHIPPING") return "info"
+    if (normalized === "COMPLETED") return "success"
+    if (normalized === "CANCELLED") return "destructive"
+    if (normalized === "REFUNDED") return "warning"
+    return "default"
+  }
+
+  const formatOrderTime = (value?: string) => {
+    if (!value) return ""
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ""
+    return date.toLocaleString("vi-VN")
+  }
+
+  const orderCodeLabel = order?.code || order?.orderNumber || (order?.id ? order.id.slice(0, 8) : "")
+  const orderTimeLabel = formatOrderTime(order?.updatedAt || order?.createdAt)
+  const paymentStatus = payment?.status || order?.paymentStatus
+  const isPaymentSuccessStatus = isPaymentSuccess(paymentStatus)
+  const isPaymentFailureStatus = isPaymentFailure(paymentStatus)
+  const showBackButton = Boolean(orderId)
+
+  const handleBack = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back()
+      return
+    }
+    router.push("/buyer/orders")
+  }, [router])
+
   return (
     <div className="relative">
       {toast ? (
@@ -1019,22 +1056,29 @@ export default function CheckoutPage() {
       ) : null}
       <div className="container mx-auto px-4 py-10 relative">
         <div className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+          <div className="flex flex-col gap-3">
+            {showBackButton ? (
+              <div className="w-fit">
+                <Button
+                  type="button"
+                  variant="buyerOutline"
+                  size="sm"
+                  onClick={handleBack}
+                  className="gap-2"
+                >
+                  <ArrowLeft size={16} />
+                  Quay lại
+                </Button>
+              </div>
+            ) : null}
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-buyer-primary/80">
-              Secure Checkout
+              Thanh toán an toàn
             </p>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Checkout</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Thanh toán</h1>
             <p className="text-sm text-gray-600 mt-2">
               Hoàn tất đơn hàng của bạn trong vài bước nhanh chóng.
             </p>
           </div>
-          {order ? (
-            <div className="rounded-2xl border border-gray-200/70 bg-white/80 px-5 py-3 shadow-sm backdrop-blur">
-              <p className="text-xs uppercase tracking-wider text-gray-500">Trạng thái đơn</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{statusLabel(order.status)}</p>
-              <p className="text-xs text-gray-500 mt-1">{paymentMethodLabel(order.paymentMethod)}</p>
-            </div>
-          ) : null}
         </div>
 
         {/* Progress Steps */}
@@ -1075,7 +1119,7 @@ export default function CheckoutPage() {
           {orderLoading ? (
             <Card className="border border-gray-200/70 shadow-sm">
               <CardContent className="p-6">
-                <p className="text-gray-600">Loading order...</p>
+                <p className="text-gray-600">Đang tải đơn hàng...</p>
               </CardContent>
             </Card>
           ) : orderError ? (
@@ -1088,17 +1132,17 @@ export default function CheckoutPage() {
             <>
               <Card className="border border-gray-200/70 shadow-sm">
                 <CardHeader>
-                  <CardTitle>Shipping Information</CardTitle>
+                  <CardTitle>Thông tin giao hàng</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <p className="font-medium">{receiver?.name || "Customer"}</p>
+                  <p className="font-medium">{receiver?.name || "Khách hàng"}</p>
                   {receiver?.phone ? <p className="text-gray-600">{receiver.phone}</p> : null}
                     <p className="text-gray-600">{receiver?.address || "Chưa có địa chỉ"}</p>
                 </CardContent>
               </Card>
               <Card className="border border-gray-200/70 shadow-sm">
                 <CardHeader>
-                  <CardTitle>Order Items</CardTitle>
+                  <CardTitle>Sản phẩm trong đơn</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {orderItems.length === 0 ? (
@@ -1106,7 +1150,7 @@ export default function CheckoutPage() {
                   ) : (
                     orderItems.map((item: any) => {
                       const image = item.productImage || item.product?.images?.[0]
-                      const name = item.productName || item.product?.name || "Product"
+                      const name = item.productName || item.product?.name || "Sản phẩm"
                       const skuValue = item.skuValue
                       const price = typeof item.price === "number" ? item.price : 0
                       const quantity = typeof item.quantity === "number" ? item.quantity : 0
@@ -1123,11 +1167,11 @@ export default function CheckoutPage() {
                             {skuValue ? (
                               <p className="text-sm text-gray-600">SKU: {skuValue}</p>
                             ) : null}
-                            <p className="text-sm text-gray-600">Qty: {quantity}</p>
+                            <p className="text-sm text-gray-600">Số lượng: {quantity}</p>
                           </div>
                           <div className="text-right">
                             <p className="font-semibold text-gray-800">{formatVnd(total)}</p>
-                            <p className="text-sm text-gray-500">{formatVnd(price)} / item</p>
+                            <p className="text-sm text-gray-500">{formatVnd(price)} / sản phẩm</p>
                           </div>
                         </div>
                       )
@@ -1137,30 +1181,63 @@ export default function CheckoutPage() {
               </Card>
               <Card className="border border-gray-200/70 shadow-sm">
                 <CardHeader>
-                  <CardTitle>Order Status</CardTitle>
+                  <CardTitle>Trạng thái đơn hàng</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-gray-600">Trạng thái: {statusLabel(order.status)}</p>
-                  <p className="text-gray-600">
-                    Payment: {paymentMethodLabel(order.paymentMethod || "COD")}
-                  </p>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Trạng thái</span>
+                    <Badge variant={statusBadgeVariant(order.status)}>
+                      {statusLabel(order.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Thanh toán</span>
+                    <span className="text-sm font-semibold text-gray-800">
+                      {paymentMethodLabel(order.paymentMethod || "COD")}
+                    </span>
+                  </div>
+                  {orderCodeLabel ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Mã đơn</span>
+                      <span className="text-sm font-semibold text-gray-800">#{orderCodeLabel}</span>
+                    </div>
+                  ) : null}
+                  {orderTimeLabel ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Cập nhật</span>
+                      <span className="text-sm text-gray-500">{orderTimeLabel}</span>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
               <Card className="border border-gray-200/70 shadow-sm">
                 <CardHeader>
-                  <CardTitle>Payment</CardTitle>
+                  <CardTitle>Thanh toán</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {(order.paymentMethod || "").toUpperCase() === "ONLINE" ? (
-                    <Button
-                      type="button"
-                      variant="buyer"
-                      className="w-full"
-                      onClick={handleOpenPaymentModal}
-                      disabled={paymentLoading}
-                    >
-                      Thanh Toán
-                    </Button>
+                    isPaymentSuccessStatus ? (
+                      <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        Đã thanh toán thành công.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Button
+                          type="button"
+                          variant="buyer"
+                          className="w-full"
+                          onClick={handleOpenPaymentModal}
+                          disabled={paymentLoading}
+                        >
+                          Thanh Toán
+                        </Button>
+                        {isPaymentFailureStatus ? (
+                          <p className="text-xs text-amber-600">
+                            Thanh toán trước đó không thành công. Bạn có thể thử lại.
+                          </p>
+                        ) : null}
+                      </div>
+                    )
                   ) : (
                     <p className="text-gray-600">Thanh toán khi nhận hàng.</p>
                   )}
@@ -1170,11 +1247,11 @@ export default function CheckoutPage() {
           ) : step === 1 && (
             <Card className="border border-gray-200/70 shadow-sm">
               <CardHeader>
-                <CardTitle>Shipping Information</CardTitle>
+                <CardTitle>Thông tin giao hàng</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {addressLoading ? (
-                  <p className="text-sm text-gray-600">Loading address...</p>
+                  <p className="text-sm text-gray-600">Đang tải địa chỉ...</p>
                 ) : null}
                 {addressError ? (
                   <p className="text-sm text-red-600">{addressError}</p>
@@ -1186,7 +1263,7 @@ export default function CheckoutPage() {
                 ) : null}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName">Họ</Label>
                     <Input
                       id="firstName"
                       value={shippingForm.firstName}
@@ -1196,7 +1273,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName">Tên</Label>
                     <Input
                       id="lastName"
                       value={shippingForm.lastName}
@@ -1218,7 +1295,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">Điện thoại</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -1229,7 +1306,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">Địa chỉ</Label>
                   <Input
                     id="address"
                     value={shippingForm.address}
@@ -1239,7 +1316,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <Label>Shipping Method</Label>
+                  <Label>Phương thức giao hàng</Label>
                   <RadioGroup
                     value={shippingMethod}
                     onValueChange={(value) =>
@@ -1261,7 +1338,7 @@ export default function CheckoutPage() {
                   </RadioGroup>
                 </div>
                 <div>
-                  <Label>Payment Method</Label>
+                  <Label>Phương thức thanh toán</Label>
                   <RadioGroup
                     value={paymentMethod}
                     onValueChange={(value) => setPaymentMethod(value as "COD" | "ONLINE")}
@@ -1293,22 +1370,22 @@ export default function CheckoutPage() {
           {step === 2 && !order && (
             <Card className="border border-gray-200/70 shadow-sm">
               <CardHeader>
-                <CardTitle>Order Confirmation</CardTitle>
+                <CardTitle>Xác nhận đơn hàng</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold mb-2">Shipping Address</h3>
+                    <h3 className="font-semibold mb-2">Địa chỉ giao hàng</h3>
                     <p className="text-gray-600">
-                      {`${shippingForm.firstName} ${shippingForm.lastName}`.trim() || "Customer"}
+                      {`${shippingForm.firstName} ${shippingForm.lastName}`.trim() || "Khách hàng"}
                     </p>
                     {shippingForm.phone ? (
                       <p className="text-gray-600">{shippingForm.phone}</p>
                     ) : null}
-                    <p className="text-gray-600">{buildReceiverAddress() || "No address"}</p>
+                    <p className="text-gray-600">{buildReceiverAddress() || "Chưa có địa chỉ"}</p>
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Payment Method</h3>
+                    <h3 className="font-semibold mb-2">Phương thức thanh toán</h3>
                     <p className="text-gray-600">{paymentLabel}</p>
                     {paymentMethod === "ONLINE" ? (
                       <p className="text-sm text-gray-500 mt-1">
@@ -1318,11 +1395,11 @@ export default function CheckoutPage() {
                   </div>
                   {cart && cart.items.length > 0 ? (
                     <div>
-                      <h3 className="font-semibold mb-2">Items</h3>
+                      <h3 className="font-semibold mb-2">Sản phẩm</h3>
                       <div className="space-y-3">
                         {cart.items.map((item) => {
                           const image = item.productImage || item.product?.images?.[0]
-                          const name = item.productName || item.product?.name || "Product"
+                          const name = item.productName || item.product?.name || "Sản phẩm"
                           const total = (item.price || 0) * (item.quantity || 0)
                           return (
                             <div key={item.id} className="flex items-center gap-3">
@@ -1336,7 +1413,7 @@ export default function CheckoutPage() {
                                 {item.skuValue ? (
                                   <p className="text-xs text-gray-600">SKU: {item.skuValue}</p>
                                 ) : null}
-                                <p className="text-xs text-gray-600">Qty: {item.quantity}</p>
+                                <p className="text-xs text-gray-600">Số lượng: {item.quantity}</p>
                               </div>
                               <p className="text-sm font-semibold text-gray-800">
                                 {formatVnd(total)}
@@ -1351,7 +1428,7 @@ export default function CheckoutPage() {
                     <p className="text-sm text-red-600">Giỏ hàng đang trống.</p>
                   ) : null}
                   {cartLoading ? (
-                    <p className="text-sm text-gray-600">Loading cart...</p>
+                    <p className="text-sm text-gray-600">Đang tải giỏ hàng...</p>
                   ) : null}
                   {cartError ? (
                     <p className="text-sm text-red-600">{cartError}</p>
@@ -1379,7 +1456,7 @@ export default function CheckoutPage() {
           <Card className="sticky top-24 overflow-hidden border-0 shadow-lg">
             <div className="bg-gradient-to-r from-buyer-primary to-buyer-secondary px-6 py-4 text-white">
               <p className="text-xs uppercase tracking-[0.2em] text-white/80">Tóm tắt đơn hàng</p>
-              <h2 className="text-xl font-bold">Order Summary</h2>
+              <h2 className="text-xl font-bold">Tóm tắt đơn hàng</h2>
               <p className="text-sm text-white/80 mt-1">
                 {summary ? formatVnd(summary.total) : cartLoading ? "--" : "0 ₫"}
               </p>
@@ -1389,7 +1466,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3 mb-4">
                   {orderItems.map((item: any) => {
                     const image = item.productImage || item.product?.images?.[0]
-                    const name = item.productName || item.product?.name || "Product"
+                    const name = item.productName || item.product?.name || "Sản phẩm"
                     const skuValue = item.skuValue
                     const price = typeof item.price === "number" ? item.price : 0
                     const quantity = typeof item.quantity === "number" ? item.quantity : 0
@@ -1597,13 +1674,13 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">Tạm tính</span>
                   <span>
                     {summary ? formatVnd(summary.subtotal) : cartLoading ? "--" : "0 ₫"}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">Phí vận chuyển</span>
                   <span>
                     {summary ? formatVnd(summary.shippingFee) : cartLoading ? "--" : "0 ₫"}
                   </span>
@@ -1618,12 +1695,12 @@ export default function CheckoutPage() {
                 ) : null}
                 {!summary ? (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Tax</span>
+                    <span className="text-gray-600">Thuế</span>
                     <span>{cartLoading ? "--" : "0 ₫"}</span>
                   </div>
                 ) : null}
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
-                  <span>Total</span>
+                  <span>Tổng cộng</span>
                   <span className="text-buyer-primary text-xl">
                     {summary ? formatVnd(summary.total) : cartLoading ? "--" : "0 ₫"}
                   </span>
@@ -1651,7 +1728,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setShowPaymentModal(false)}
                 className="h-9 w-9 rounded-full border border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-300"
-                aria-label="Close"
+                aria-label="Đóng"
               >
                 ✕
               </button>
@@ -1717,7 +1794,7 @@ export default function CheckoutPage() {
                 type="button"
                 onClick={() => setShowPaymentSuccessModal(false)}
                 className="h-9 w-9 rounded-full border border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-300"
-                aria-label="Close"
+                aria-label="Đóng"
               >
                 ✕
               </button>

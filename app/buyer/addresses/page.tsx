@@ -38,7 +38,7 @@ export default function AddressesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this address?")) return
+    if (!confirm("Bạn có chắc muốn xóa địa chỉ này?")) return
     const response = await api.address.delete(id)
     if (response.error) {
       alert(response.error)
@@ -50,16 +50,16 @@ export default function AddressesPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">My Addresses</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Địa chỉ của tôi</h1>
         <Button variant="buyer">
           <Plus className="mr-2" size={20} />
-          Add New Address
+          Thêm địa chỉ mới
         </Button>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">Loading addresses...</p>
+          <p className="text-gray-600">Đang tải địa chỉ...</p>
         </div>
       ) : error ? (
         <div className="text-center py-12">
@@ -67,7 +67,7 @@ export default function AddressesPage() {
         </div>
       ) : addresses.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No addresses found</p>
+          <p className="text-gray-600">Chưa có địa chỉ</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -80,7 +80,7 @@ export default function AddressesPage() {
                   <h3 className="font-semibold text-gray-800">{address.label}</h3>
                 </div>
                 {address.isDefault && (
-                  <Badge variant="success" className="text-xs">Default</Badge>
+                  <Badge variant="success" className="text-xs">Mặc định</Badge>
                 )}
               </div>
               <div className="space-y-1 text-gray-600 mb-4">
@@ -89,12 +89,12 @@ export default function AddressesPage() {
                 {address.addressLine2 && <p>{address.addressLine2}</p>}
                 <p>{address.city}, {address.state} {address.zipCode}</p>
                 <p>{address.country}</p>
-                <p>Phone: {address.phone}</p>
+                <p>Điện thoại: {address.phone}</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1">
                   <Edit className="mr-2" size={16} />
-                  Edit
+                  Sửa
                 </Button>
                 <Button
                   variant="outline"
@@ -103,12 +103,12 @@ export default function AddressesPage() {
                   onClick={() => handleDelete(address.id)}
                 >
                   <Trash2 className="mr-2" size={16} />
-                  Delete
+                  Xóa
                 </Button>
               </div>
               {!address.isDefault && (
                 <Button variant="buyerOutline" size="sm" className="w-full mt-2">
-                  Set as Default
+                  Đặt làm mặc định
                 </Button>
               )}
             </CardContent>

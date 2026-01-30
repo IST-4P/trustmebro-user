@@ -16,47 +16,75 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [search, setSearch] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [showFilters, setShowFilters] = useState(false)
   const searchParams = useSearchParams()
   const categoryFromUrl = searchParams.get("categoryId") || ""
+  const nameFromUrl = searchParams.get("name") || ""
+  const [search, setSearch] = useState(nameFromUrl)
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryFromUrl)
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    loadData()
+    const loadCategories = async () => {
+      const categoriesRes = await api.category.list()
+
+      if (categoriesRes.error) {
+        console.error("Failed to load categories:", categoriesRes.error)
+        setCategories([])
+      } else if (categoriesRes.data) {
+        setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : [])
+      } else {
+        setCategories([])
+      }
+    }
+
+    loadCategories()
   }, [])
 
   useEffect(() => {
     setSelectedCategory(categoryFromUrl)
   }, [categoryFromUrl])
 
-  const loadData = async () => {
-    setLoading(true)
-    setError(null)
+  useEffect(() => {
+    setSearch(nameFromUrl)
+  }, [nameFromUrl])
 
-    const [productsRes, categoriesRes] = await Promise.all([
-      api.product.list(),
-      api.category.list(),
-    ])
+  const emptySearchMessage = search.trim()
+    ? "Sản phẩm tìm kiếm hiện không có"
+    : "Không tìm thấy sản phẩm"
 
-    if (productsRes.error) {
-      setError(typeof productsRes.error === "string" ? productsRes.error : String(productsRes.error))
-    } else if (productsRes.data) {
-      setProducts(productsRes.data.items || [])
+  useEffect(() => {
+    let isActive = true
+    const handler = setTimeout(async () => {
+      setLoading(true)
+      setError(null)
+
+      const productsRes = await api.product.list({
+        name: search.trim() || undefined,
+        categoryId: selectedCategory || undefined,
+      })
+
+      if (!isActive) return
+
+      if (productsRes.error) {
+        const rawError = typeof productsRes.error === "string" ? productsRes.error : String(productsRes.error)
+        if (rawError.includes("ProductNotFound")) {
+          setError(emptySearchMessage)
+        } else {
+          setError(rawError)
+        }
+        setProducts([])
+      } else if (productsRes.data) {
+        setProducts(productsRes.data.items || [])
+      }
+
+      setLoading(false)
+    }, 300)
+
+    return () => {
+      isActive = false
+      clearTimeout(handler)
     }
-
-    if (categoriesRes.error) {
-      console.error("Failed to load categories:", categoriesRes.error)
-      setCategories([])
-    } else if (categoriesRes.data) {
-      // Ensure categories is always an array
-      setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : [])
-    } else {
-      setCategories([])
-    }
-
-    setLoading(false)
-  }
+  }, [search, selectedCategory, emptySearchMessage])
 
   const getProductCategoryIds = (product: Product) => {
     const ids = new Set<string>()
@@ -81,18 +109,12 @@ export default function ProductsPage() {
     return Array.from(ids)
   }
 
-  const filteredProducts = products.filter((product) => {
-    if (search && !product.name.toLowerCase().includes(search.toLowerCase())) {
-      return false
-    }
-    if (selectedCategory) {
-      const productCategoryIds = getProductCategoryIds(product)
-      if (!productCategoryIds.includes(selectedCategory)) {
-        return false
-      }
-    }
-    return true
-  })
+  const filteredProducts = selectedCategory
+    ? products.filter((product) => {
+        const productCategoryIds = getProductCategoryIds(product)
+        return productCategoryIds.includes(selectedCategory)
+      })
+    : products
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row gap-6">
@@ -114,11 +136,11 @@ export default function ProductsPage() {
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-4 flex items-center">
                   <Filter className="mr-2" size={20} />
-                  Filters
+                  Bộ lọc
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Category</label>
+                    <label className="text-sm font-medium mb-2 block">Danh mục</label>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <input
@@ -128,7 +150,7 @@ export default function ProductsPage() {
                           checked={selectedCategory === ""}
                           onChange={() => setSelectedCategory("")}
                         />
-                        <label htmlFor="all" className="text-sm">All</label>
+                        <label htmlFor="all" className="text-sm">Tất cả</label>
                       </div>
                       {Array.isArray(categories) && categories.map((cat) => (
                         <div key={cat.id} className="flex items-center space-x-2">
@@ -145,24 +167,24 @@ export default function ProductsPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Price Range</label>
+                    <label className="text-sm font-medium mb-2 block">Khoảng giá</label>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <input type="radio" name="price" id="price1" />
-                        <label htmlFor="price1" className="text-sm">Under $50</label>
+                        <label htmlFor="price1" className="text-sm">Dưới 1.000.000 VND</label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <input type="radio" name="price" id="price2" />
-                        <label htmlFor="price2" className="text-sm">$50 - $100</label>
+                        <label htmlFor="price2" className="text-sm">1.000.000 - 5.000.000 VND</label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <input type="radio" name="price" id="price3" />
-                        <label htmlFor="price3" className="text-sm">$100 - $200</label>
+                        <label htmlFor="price3" className="text-sm">5.000.000 - 10.000.000 VND</label>
                       </div>
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Rating</label>
+                    <label className="text-sm font-medium mb-2 block">Đánh giá</label>
                     <div className="space-y-2">
                       {[4, 3, 2, 1].map((rating) => (
                         <div key={rating} className="flex items-center space-x-2">
@@ -175,7 +197,7 @@ export default function ProductsPage() {
                                 className={i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
                               />
                             ))}
-                            <span className="ml-1">& Up</span>
+                            <span className="ml-1">trở lên</span>
                           </label>
                         </div>
                       ))}
@@ -192,7 +214,7 @@ export default function ProductsPage() {
           {/* Search and Sort */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <Input
-              placeholder="Search products..."
+              placeholder="Tìm kiếm sản phẩm..."
               className="flex-1"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -205,10 +227,10 @@ export default function ProductsPage() {
                 <List size={20} />
               </Button>
               <select className="px-4 py-2 border rounded-md">
-                <option>Sort by: Featured</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Rating</option>
+                <option>Sắp xếp: Nổi bật</option>
+                <option>Giá: thấp đến cao</option>
+                <option>Giá: cao đến thấp</option>
+                <option>Đánh giá</option>
               </select>
             </div>
           </div>
@@ -216,7 +238,7 @@ export default function ProductsPage() {
           {/* Products */}
           {loading ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">Loading products...</p>
+              <p className="text-gray-600">Đang tải sản phẩm...</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
@@ -224,7 +246,7 @@ export default function ProductsPage() {
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600">No products found</p>
+              <p className="text-gray-600">{emptySearchMessage}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -245,7 +267,7 @@ export default function ProductsPage() {
                         if (strikePrice && strikePrice > displayPrice) {
                           return (
                             <Badge variant="success" className="absolute top-2 right-2">
-                              Sale
+                              Giảm giá
                             </Badge>
                           )
                         }
@@ -294,7 +316,7 @@ export default function ProductsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-xl font-bold text-buyer-primary">
-                          ${product.basePrice ?? product.price ?? 0}
+                          {(product.basePrice ?? product.price ?? 0).toLocaleString("vi-VN")} VND
                         </span>
                         {(() => {
                           const displayPrice = product.basePrice ?? product.price ?? 0
@@ -302,7 +324,7 @@ export default function ProductsPage() {
                           if (strikePrice && strikePrice !== displayPrice) {
                             return (
                               <span className="text-sm text-gray-500 line-through ml-2">
-                                ${strikePrice}
+                                {strikePrice.toLocaleString("vi-VN")} VND
                               </span>
                             )
                           }
@@ -318,11 +340,11 @@ export default function ProductsPage() {
 
           {/* Pagination */}
           <div className="flex justify-center gap-2 mt-8">
-            <Button variant="outline" disabled>Previous</Button>
+            <Button variant="outline" disabled>Trước</Button>
             <Button variant="buyer">1</Button>
             <Button variant="outline">2</Button>
             <Button variant="outline">3</Button>
-            <Button variant="outline">Next</Button>
+            <Button variant="outline">Sau</Button>
           </div>
         </div>
       </div>

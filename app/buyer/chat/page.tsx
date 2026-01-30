@@ -569,7 +569,7 @@ export default function ChatPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <Input
-              placeholder="Search conversations..."
+              placeholder="Tìm cuộc trò chuyện..."
               className="pl-10"
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
@@ -577,16 +577,16 @@ export default function ChatPage() {
           </div>
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {conversationLoading ? (
-              <div className="text-sm text-gray-600">Loading conversations...</div>
+              <div className="text-sm text-gray-600">Đang tải cuộc trò chuyện...</div>
             ) : conversationError ? (
               <div className="text-sm text-red-600">{conversationError}</div>
             ) : filteredConversations.length === 0 ? (
-              <div className="text-sm text-gray-600">No conversations found</div>
+              <div className="text-sm text-gray-600">Không có cuộc trò chuyện</div>
             ) : (
               filteredConversations.map((conversation) => {
                 const peer = getConversationPeer(conversation)
                 const unread = isConversationUnread(conversation)
-                const name = peer?.username || "Unknown"
+                const name = peer?.username || "Không rõ"
                 return (
                   <Card
                     key={conversation.id}
@@ -605,7 +605,7 @@ export default function ChatPage() {
                             <h3 className="font-semibold text-gray-800 truncate">{name}</h3>
                             {unread ? (
                               <Badge variant="info" className="text-xs">
-                                New
+                                Mới
                               </Badge>
                             ) : null}
                           </div>
@@ -635,23 +635,23 @@ export default function ChatPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-800">
-                    {activePeer?.username || "Select a conversation"}
+                    {activePeer?.username || "Chọn cuộc trò chuyện"}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    {selectedConversation ? "Conversation active" : "No conversation selected"}
+                    {selectedConversation ? "Đang trò chuyện" : "Chưa chọn cuộc trò chuyện"}
                   </p>
                 </div>
               </div>
             </CardContent>
             <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
               {messageLoading ? (
-                <div className="text-sm text-gray-600">Loading messages...</div>
+                <div className="text-sm text-gray-600">Đang tải tin nhắn...</div>
               ) : messageError ? (
                 <div className="text-sm text-red-600">{messageError}</div>
               ) : !selectedConversation ? (
-                <div className="text-sm text-gray-600">Select a conversation to start chatting.</div>
+                <div className="text-sm text-gray-600">Chọn cuộc trò chuyện để bắt đầu.</div>
               ) : messages.length === 0 ? (
-                <div className="text-sm text-gray-600">No messages yet.</div>
+                <div className="text-sm text-gray-600">Chưa có tin nhắn.</div>
               ) : (
                 messages.map((msg) => {
                   const isMine = user?.id ? msg.senderId === user.id : false
@@ -677,7 +677,7 @@ export default function ChatPage() {
                           <div className="space-y-2">
                             <img
                               src={imageUrl}
-                              alt="Chat image"
+                              alt="Ảnh trò chuyện"
                               loading="lazy"
                               className="max-w-[320px] sm:max-w-[380px] md:max-w-[420px] rounded-md border border-white/20"
                             />
@@ -712,12 +712,12 @@ export default function ChatPage() {
                   size="icon"
                   onClick={() => imageInputRef.current?.click()}
                   disabled={!selectedConversation || imageUploading}
-                  title="Send image"
+                  title="Gửi ảnh"
                 >
                   <Paperclip size={20} />
                 </Button>
                 <Input
-                  placeholder="Type a message..."
+                  placeholder="Nhập tin nhắn..."
                   className="flex-1"
                   value={messageInput}
                   onChange={(event) => setMessageInput(event.target.value)}
@@ -735,7 +735,7 @@ export default function ChatPage() {
                     size="icon"
                     onClick={() => setEmojiOpen((prev) => !prev)}
                     disabled={!selectedConversation}
-                    title="Emoji"
+                    title="Biểu tượng cảm xúc"
                     data-emoji-toggle
                   >
                     <Smile size={20} />

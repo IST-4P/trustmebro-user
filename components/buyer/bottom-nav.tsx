@@ -2,20 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Home, ShoppingBag, ShoppingCart, User, Bell, ListOrdered, MessageSquare } from "lucide-react"
+import { Home, ShoppingBag, ShoppingCart, User, ListOrdered, MessageSquare, PlaySquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function BuyerBottomNav() {
   const pathname = usePathname()
 
   const navItems = [
-    { href: "/buyer", icon: Home, label: "Home" },
-    { href: "/buyer/products", icon: ShoppingBag, label: "Products" },
-    { href: "/buyer/cart", icon: ShoppingCart, label: "Cart" },
-    { href: "/buyer/chat", icon: MessageSquare, label: "Chat" },
-    { href: "/buyer/orders", icon: ListOrdered, label: "Orders" },
-    { href: "/buyer/notifications", icon: Bell, label: "Notifications" },
-    { href: "/buyer/profile", icon: User, label: "Profile" },
+    { href: "/buyer", icon: Home, label: "Trang chủ" },
+    { href: "/buyer/videos", icon: PlaySquare, label: "Video" },
+    { href: "/buyer/products", icon: ShoppingBag, label: "Sản phẩm" },
+    { href: "/buyer/chat", icon: MessageSquare, label: "Trò chuyện" },
+    { href: "/buyer/orders", icon: ListOrdered, label: "Đơn hàng" },
+    { href: "/buyer/profile", icon: User, label: "Hồ sơ" },
   ]
 
   return (

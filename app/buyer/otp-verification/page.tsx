@@ -34,9 +34,9 @@ export default function OTPVerificationPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold">Verify OTP</CardTitle>
+          <CardTitle className="text-3xl font-bold">Xác minh OTP</CardTitle>
           <CardDescription>
-            Enter the 6-digit code sent to your phone
+            Nhập mã 6 chữ số gửi đến điện thoại
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,20 +58,20 @@ export default function OTPVerificationPage() {
             </div>
             <div className="text-center">
               <p className="text-sm text-gray-600">
-                Didn't receive code?{" "}
+                Chưa nhận được mã?{" "}
                 <button type="button" className="text-buyer-primary hover:underline font-medium">
-                  Resend
+                  Gửi lại
                 </button>
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                Time remaining: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
+                Thời gian còn lại: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
               </p>
             </div>
             <Button type="submit" variant="buyer" className="w-full" size="lg">
-              Verify
+              Xác minh
             </Button>
             <Link href="/buyer/login" className="block text-center text-sm text-gray-600 hover:text-buyer-primary">
-              Back to login
+              Quay lại đăng nhập
             </Link>
           </form>
         </CardContent>
