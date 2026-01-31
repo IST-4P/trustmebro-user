@@ -22,6 +22,10 @@ function ProductsContent() {
   const [search, setSearch] = useState(nameFromUrl)
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryFromUrl)
   const [showFilters, setShowFilters] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 12
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -61,6 +65,8 @@ function ProductsContent() {
       const productsRes = await api.product.list({
         name: search.trim() || undefined,
         categoryId: selectedCategory || undefined,
+        page: currentPage,
+        limit: itemsPerPage,
       })
 
       if (!isActive) return
@@ -73,8 +79,12 @@ function ProductsContent() {
           setError(rawError)
         }
         setProducts([])
+        setTotalPages(1)
+        setTotalItems(0)
       } else if (productsRes.data) {
         setProducts(productsRes.data.items || [])
+        setTotalItems(productsRes.data.total || 0)
+        setTotalPages(Math.ceil((productsRes.data.total || 0) / itemsPerPage))
       }
 
       setLoading(false)
@@ -84,7 +94,7 @@ function ProductsContent() {
       isActive = false
       clearTimeout(handler)
     }
-  }, [search, selectedCategory, emptySearchMessage])
+  }, [search, selectedCategory, emptySearchMessage, currentPage, itemsPerPage])
 
   const getProductCategoryIds = (product: Product) => {
     const ids = new Set<string>()
@@ -115,6 +125,54 @@ function ProductsContent() {
         return productCategoryIds.includes(selectedCategory)
       })
     : products
+
+  // Reset về trang 1 khi thay đổi bộ lọc hoặc tìm kiếm
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, selectedCategory])
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  const generatePageNumbers = () => {
+    const pages: (number | string)[] = []
+    const maxVisible = 5
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i)
+        }
+        pages.push('...')
+        pages.push(totalPages)
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1)
+        pages.push('...')
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i)
+        }
+      } else {
+        pages.push(1)
+        pages.push('...')
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i)
+        }
+        pages.push('...')
+        pages.push(totalPages)
+      }
+    }
+
+    return pages
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row gap-6">
@@ -339,13 +397,44 @@ function ProductsContent() {
           )}
 
           {/* Pagination */}
-          <div className="flex justify-center gap-2 mt-8">
-            <Button variant="outline" disabled>Trước</Button>
-            <Button variant="buyer">1</Button>
-            <Button variant="outline">2</Button>
-            <Button variant="outline">3</Button>
-            <Button variant="outline">Sau</Button>
-          </div>
+          {!loading && !error && filteredProducts.length > 0 && totalPages > 1 && (
+            <div className="flex flex-col items-center gap-4 mt-8">
+              <div className="text-sm text-gray-600">
+                Hiển thị {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} trong tổng số {totalItems} sản phẩm
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                {generatePageNumbers().map((page, index) => (
+                  typeof page === 'number' ? (
+                    <Button
+                      key={index}
+                      variant={currentPage === page ? "buyer" : "outline"}
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </Button>
+                  ) : (
+                    <span key={index} className="px-3 py-2 text-gray-400">
+                      {page}
+                    </span>
+                  )
+                ))}
+                <Button 
+                  variant="outline"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
