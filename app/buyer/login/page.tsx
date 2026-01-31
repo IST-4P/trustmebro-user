@@ -100,22 +100,6 @@ export default function LoginPage() {
             <Button type="submit" variant="buyer" className="w-full" size="lg" disabled={loading}>
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">Hoặc tiếp tục với</span>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Button type="button" variant="outline" className="w-full">
-                Google
-              </Button>
-              <Button type="button" variant="outline" className="w-full">
-                Facebook
-              </Button>
-            </div>
             <p className="text-center text-sm text-gray-600">
               Chưa có tài khoản?{" "}
               <Link href="/buyer/register" className="text-buyer-primary hover:underline font-medium">
