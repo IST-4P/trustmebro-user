@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Star, Upload, X } from "lucide-react"
 import { api } from "@/lib/api"
 import type { Order } from "@/lib/types"
+import { Toast } from "@/components/ui/toast"
 
 type ReviewItem = {
   id: string
@@ -27,7 +28,7 @@ type SubmitState = {
 
 type MediaItem = {
   url: string
-  type: "image" | "video"
+  type: "image"
   name: string
 }
 
@@ -51,6 +52,7 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
   const [mediaByItem, setMediaByItem] = useState<Record<string, MediaItem[]>>({})
   const [mediaUploading, setMediaUploading] = useState<Record<string, boolean>>({})
   const [mediaError, setMediaError] = useState<Record<string, string | null>>({})
+  const [toast, setToast] = useState<{ message: string; variant?: "success" | "error" } | null>(null)
 
   useEffect(() => {
     const loadOrder = async () => {
@@ -133,6 +135,8 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
         ...prev,
         [itemId]: { loading: false, error: response.error, success: false },
       }))
+      setToast({ message: response.error, variant: "error" })
+      setTimeout(() => setToast(null), 3000)
       return
     }
 
@@ -140,6 +144,12 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
       ...prev,
       [itemId]: { loading: false, error: null, success: true },
     }))
+    
+    // Show success toast and redirect
+    setToast({ message: "Đánh giá thành công!", variant: "success" })
+    setTimeout(() => {
+      router.push("/buyer/orders")
+    }, 1500)
   }
 
   const handleMediaChange = async (itemId: string, event: ChangeEvent<HTMLInputElement>) => {
@@ -157,10 +167,13 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
     try {
       const uploaded: MediaItem[] = []
       for (const file of files) {
-        const isVideo = file.type.startsWith("video/")
-        const presigned = isVideo
-          ? await api.media.tusd({ filename: file.name })
-          : await api.media.imagePresigned({ filename: file.name })
+        // Only allow images
+        if (!file.type.startsWith("image/")) {
+          setMediaError((prev) => ({ ...prev, [itemId]: "Chỉ chấp nhận file ảnh" }))
+          continue
+        }
+        
+        const presigned = await api.media.imagePresigned({ filename: file.name })
         if (presigned.error || !presigned.data) {
           const message = typeof presigned.error === "string"
             ? presigned.error
@@ -178,7 +191,7 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
         }
         uploaded.push({
           url: presigned.data.url,
-          type: isVideo ? "video" : "image",
+          type: "image",
           name: file.name,
         })
       }
@@ -204,6 +217,14 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => setToast(null)}
+        />
+      )}
+      
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-gray-400">Đánh giá đơn hàng</p>
@@ -310,14 +331,14 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">Ảnh/Video đánh giá</p>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Ảnh đánh giá</p>
                     <div className="flex flex-wrap items-center gap-3">
                       <label className="inline-flex items-center gap-2 rounded-md border border-dashed border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:border-buyer-primary hover:text-buyer-primary transition cursor-pointer">
                         <Upload size={16} />
-                        <span>{mediaUploading[item.id] ? "Đang tải..." : "Chọn ảnh/video"}</span>
+                        <span>{mediaUploading[item.id] ? "Đang tải..." : "Chọn ảnh"}</span>
                         <input
                           type="file"
-                          accept="image/*,video/*"
+                          accept="image/*"
                           multiple
                           className="hidden"
                           onChange={(event) => handleMediaChange(item.id, event)}
@@ -340,24 +361,16 @@ export default function OrderReviewPage({ params }: { params: { id: string } }) 
                             key={media.url}
                             className="relative rounded-lg border border-gray-200 bg-gray-50 p-2"
                           >
-                            {media.type === "image" ? (
-                              <img
-                                src={media.url}
-                                alt={media.name}
-                                className="h-24 w-full rounded-md object-cover"
-                              />
-                            ) : (
-                              <video
-                                src={media.url}
-                                className="h-24 w-full rounded-md object-cover"
-                                controls
-                              />
-                            )}
+                            <img
+                              src={media.url}
+                              alt={media.name}
+                              className="h-24 w-full rounded-md object-cover"
+                            />
                             <button
                               type="button"
                               onClick={() => handleRemoveMedia(item.id, media.url)}
                               className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:text-gray-800"
-                              aria-label="Xóa file"
+                              aria-label="Xóa ảnh"
                             >
                               <X size={14} />
                             </button>

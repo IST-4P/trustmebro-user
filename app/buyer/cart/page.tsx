@@ -139,7 +139,7 @@ export default function CartPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-800 mb-2">{item.product.name}</h3>
-                      <p className="text-sm text-gray-600 mb-2">SKU: {item.product.sku}</p>
+                      <p className="text-sm text-gray-600 mb-2">Phân loại: {item.product.sku}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Button

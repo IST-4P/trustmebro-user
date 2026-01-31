@@ -249,11 +249,11 @@ function ProductsContent() {
               <p className="text-gray-600">{emptySearchMessage}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {filteredProducts.map((product) => (
                 <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <Link href={`/buyer/products/${product.id}`}>
-                    <div className="relative h-48 bg-gray-200">
+                    <div className="relative h-32 sm:h-48 bg-gray-200">
                       {product.images && product.images[0] && (
                         <img
                           src={product.images[0]}
@@ -266,7 +266,7 @@ function ProductsContent() {
                         const strikePrice = product.virtualPrice ?? product.salePrice
                         if (strikePrice && strikePrice > displayPrice) {
                           return (
-                            <Badge variant="success" className="absolute top-2 right-2">
+                            <Badge variant="success" className="absolute top-1 right-1 text-xs px-1.5 py-0.5">
                               Giảm giá
                             </Badge>
                           )
@@ -275,9 +275,9 @@ function ProductsContent() {
                       })()}
                     </div>
                   </Link>
-                  <CardContent className="p-4">
+                  <CardContent className="p-2 sm:p-4">
                     <Link href={`/buyer/products/${product.id}`}>
-                      <h3 className="font-semibold text-gray-800 mb-1">{product.name}</h3>
+                      <h3 className="font-semibold text-gray-800 mb-1 text-xs sm:text-base line-clamp-2">{product.name}</h3>
                     </Link>
                     {(() => {
                       const ratingValue = typeof product.rating === "number"
@@ -293,12 +293,12 @@ function ProductsContent() {
                           : ratingValue.toFixed(1)
                         : "0"
                       return (
-                        <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 sm:mb-2 text-xs text-gray-500 gap-1">
                           <div className="flex items-center">
                             {Array.from({ length: 5 }).map((_, j) => (
                               <Star
                                 key={j}
-                                size={14}
+                                size={12}
                                 className={
                                   j < Math.floor(ratingValue)
                                     ? "text-yellow-400 fill-yellow-400"
@@ -306,16 +306,16 @@ function ProductsContent() {
                                 }
                               />
                             ))}
-                            <span className="ml-2">{ratingLabel}</span>
-                            <span className="ml-1">({ratingCount} đánh giá)</span>
+                            <span className="ml-1 text-[10px] sm:text-xs">{ratingLabel}</span>
+                            <span className="ml-1 hidden sm:inline">({ratingCount})</span>
                           </div>
-                          <span>Đã bán {soldCount}</span>
+                          <span className="text-[10px] sm:text-xs">Đã bán {soldCount}</span>
                         </div>
                       )
                     })()}
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xl font-bold text-buyer-primary">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-sm sm:text-xl font-bold text-buyer-primary">
                           {(product.basePrice ?? product.price ?? 0).toLocaleString("vi-VN")} VND
                         </span>
                         {(() => {
@@ -323,7 +323,7 @@ function ProductsContent() {
                           const strikePrice = product.virtualPrice ?? product.salePrice
                           if (strikePrice && strikePrice !== displayPrice) {
                             return (
-                              <span className="text-sm text-gray-500 line-through ml-2">
+                              <span className="text-[10px] sm:text-sm text-gray-500 line-through">
                                 {strikePrice.toLocaleString("vi-VN")} VND
                               </span>
                             )

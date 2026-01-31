@@ -824,7 +824,12 @@ function CheckoutContent() {
 
     const detailResponse = await api.promotion.get(match.id)
     if (detailResponse.error || !detailResponse.data) {
-      setPromotionError(detailResponse.error || "Không thể lấy thông tin mã giảm giá.")
+      const errorMsg = detailResponse.error || "Không thể lấy thông tin mã giảm giá."
+      if (errorMsg.includes("Error.PromotionsNotFound") || errorMsg.includes("PromotionsNotFound")) {
+        setPromotionError("Không có mã giảm giá")
+      } else {
+        setPromotionError(errorMsg)
+      }
       setPromotionLoading(false)
       return
     }
@@ -1165,7 +1170,7 @@ function CheckoutContent() {
                           <div className="flex-1">
                             <p className="font-medium text-gray-800">{name}</p>
                             {skuValue ? (
-                              <p className="text-sm text-gray-600">SKU: {skuValue}</p>
+                              <p className="text-sm text-gray-600">Phân loại: {skuValue}</p>
                             ) : null}
                             <p className="text-sm text-gray-600">Số lượng: {quantity}</p>
                           </div>
@@ -1411,7 +1416,7 @@ function CheckoutContent() {
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-800">{name}</p>
                                 {item.skuValue ? (
-                                  <p className="text-xs text-gray-600">SKU: {item.skuValue}</p>
+                                  <p className="text-xs text-gray-600">Phân loại: {item.skuValue}</p>
                                 ) : null}
                                 <p className="text-xs text-gray-600">Số lượng: {item.quantity}</p>
                               </div>

@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
-import { Store, MapPin, Phone, Star, Package, ChevronLeft } from "lucide-react"
+import { Store, MapPin, Phone, Star, Package, ChevronLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { Toast } from "@/components/ui/toast"
 
 type Shop = {
   id: string
@@ -19,6 +20,7 @@ type Shop = {
   phone?: string
   rating?: number
   isOpen: boolean
+  ownerId?: string
 }
 
 type Product = {
@@ -40,6 +42,39 @@ export default function ShopDetailPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [chatLoading, setChatLoading] = useState(false)
+  const [toast, setToast] = useState<{ message: string; variant?: "success" | "error" } | null>(null)
+
+  const handleStartChat = async () => {
+    if (!shop?.ownerId) {
+      setToast({ message: "Không thể bắt đầu chat với cửa hàng này", variant: "error" })
+      setTimeout(() => setToast(null), 2500)
+      return
+    }
+
+    setChatLoading(true)
+    try {
+      const response = await api.chat.conversations.create({
+        participantIds: [shop.ownerId]
+      })
+
+      if (response.error) {
+        setToast({ message: response.error, variant: "error" })
+        setTimeout(() => setToast(null), 2500)
+      } else if (response.data?.id) {
+        // Redirect to chat page with conversation id
+        router.push(`/buyer/chat?conversationId=${response.data.id}`)
+      } else {
+        setToast({ message: "Không thể tạo cuộc trò chuyện", variant: "error" })
+        setTimeout(() => setToast(null), 2500)
+      }
+    } catch (err) {
+      setToast({ message: "Có lỗi xảy ra khi kết nối chat", variant: "error" })
+      setTimeout(() => setToast(null), 2500)
+    } finally {
+      setChatLoading(false)
+    }
+  }
 
   useEffect(() => {
     const loadShopData = async () => {
@@ -124,6 +159,14 @@ export default function ShopDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => setToast(null)}
+        />
+      )}
+      
       {/* Back Button */}
       <Button
         variant="ghost"
@@ -175,6 +218,19 @@ export default function ShopDetailPage() {
                     )}
                   </div>
                 </div>
+                
+                {/* Chat Button */}
+                {shop.ownerId && (
+                  <Button
+                    variant="buyer"
+                    onClick={handleStartChat}
+                    disabled={chatLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    {chatLoading ? "Đang kết nối..." : "Chat với shop"}
+                  </Button>
+                )}
               </div>
 
               {shop.description && (

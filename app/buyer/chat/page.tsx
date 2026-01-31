@@ -115,6 +115,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false)
   const [emojiOpen, setEmojiOpen] = useState(false)
   const [imageUploading, setImageUploading] = useState(false)
+  const [showListView, setShowListView] = useState(true)
   const socketRef = useRef<Socket | null>(null)
   const selectedConversationRef = useRef<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
@@ -398,12 +399,14 @@ export default function ChatPage() {
   }, [])
 
   useEffect(() => {
-    if (!selectedConversationId && conversations.length > 0) {
+    // Don't auto-select if user wants to stay in list view
+    if (!selectedConversationId && conversations.length > 0 && !showListView) {
       setSelectedConversationId(conversations[0].id)
       return
     }
     if (selectedConversationId && conversations.length === 0) {
       setSelectedConversationId(null)
+      setShowListView(true)
       return
     }
     if (
@@ -413,7 +416,7 @@ export default function ChatPage() {
     ) {
       setSelectedConversationId(conversations[0].id)
     }
-  }, [conversations, selectedConversationId])
+  }, [conversations, selectedConversationId, showListView])
 
   useEffect(() => {
     if (!selectedConversationId) {
@@ -562,12 +565,12 @@ export default function ChatPage() {
   const activePeer = getConversationPeer(selectedConversation)
 
   return (
-    <div className="container mx-auto px-4 py-6 h-[calc(100vh-140px)]">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-0">
-        {/* Conversations List */}
-        <div className="lg:col-span-1 flex flex-col gap-4 min-h-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+    <div className="h-[calc(100vh-8rem)] md:h-[calc(100vh-140px)] md:container md:mx-auto md:px-4 md:py-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 md:gap-6 h-full min-h-0">
+        {/* Conversations List - Hidden on mobile when conversation is selected */}
+        <div className={`lg:col-span-1 flex flex-col gap-2 md:gap-4 min-h-0 ${selectedConversationId ? 'hidden lg:flex' : 'flex'}`}>
+          <div className="relative px-4 md:px-0 pt-4 md:pt-0">
+            <Search className="absolute left-7 md:left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <Input
               placeholder="Tìm cuộc trò chuyện..."
               className="pl-10"
@@ -575,7 +578,7 @@ export default function ChatPage() {
               onChange={(event) => setSearchValue(event.target.value)}
             />
           </div>
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          <div className="flex-1 overflow-y-auto space-y-2 px-4 md:px-0 md:pr-1">
             {conversationLoading ? (
               <div className="text-sm text-gray-600">Đang tải cuộc trò chuyện...</div>
             ) : conversationError ? (
@@ -593,23 +596,26 @@ export default function ChatPage() {
                     className={`cursor-pointer hover:shadow-md transition-shadow ${
                       selectedConversationId === conversation.id ? "border-buyer-primary border-2" : ""
                     }`}
-                    onClick={() => setSelectedConversationId(conversation.id)}
+                    onClick={() => {
+                      setSelectedConversationId(conversation.id)
+                      setShowListView(false)
+                    }}
                   >
-                    <CardContent className="p-4">
+                    <CardContent className="p-3 md:p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-12 h-12 bg-buyer-primary rounded-full flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-buyer-primary rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                           {name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-semibold text-gray-800 truncate">{name}</h3>
+                            <h3 className="font-semibold text-sm md:text-base text-gray-800 truncate">{name}</h3>
                             {unread ? (
                               <Badge variant="info" className="text-xs">
                                 Mới
                               </Badge>
                             ) : null}
                           </div>
-                          <p className="text-sm text-gray-600 truncate">
+                          <p className="text-xs md:text-sm text-gray-600 truncate">
                             {formatConversationPreview(conversation)}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
@@ -625,16 +631,28 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="lg:col-span-2 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0">
-            <CardContent className="p-4 border-b flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-buyer-primary rounded-full flex items-center justify-center text-white font-semibold">
+        {/* Chat Window - Full screen on mobile when conversation is selected */}
+        <div className={`lg:col-span-2 flex flex-col min-h-0 ${selectedConversationId ? 'flex' : 'hidden lg:flex'}`}>
+          <Card className="flex-1 flex flex-col min-h-0 rounded-none md:rounded-lg">
+            <CardContent className="p-3 md:p-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2 md:gap-3">
+                {/* Back button for mobile */}
+                <button
+                  onClick={() => {
+                    setSelectedConversationId(null)
+                    setShowListView(true)
+                  }}
+                  className="lg:hidden w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-buyer-primary rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
                   {(activePeer?.username || "U").charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800">
+                  <h3 className="font-semibold text-sm md:text-base text-gray-800">
                     {activePeer?.username || "Chọn cuộc trò chuyện"}
                   </h3>
                   <p className="text-xs text-gray-500">
@@ -643,7 +661,7 @@ export default function ChatPage() {
                 </div>
               </div>
             </CardContent>
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4">
               {messageLoading ? (
                 <div className="text-sm text-gray-600">Đang tải tin nhắn...</div>
               ) : messageError ? (
@@ -669,7 +687,7 @@ export default function ChatPage() {
                       className={`flex ${isMine ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[70%] rounded-lg p-3 ${
+                        className={`max-w-[80%] md:max-w-[70%] rounded-lg p-2 md:p-3 ${
                           isMine ? "bg-buyer-primary text-white" : "bg-gray-100 text-gray-800"
                         }`}
                       >
@@ -679,14 +697,14 @@ export default function ChatPage() {
                               src={imageUrl}
                               alt="Ảnh trò chuyện"
                               loading="lazy"
-                              className="max-w-[320px] sm:max-w-[380px] md:max-w-[420px] rounded-md border border-white/20"
+                              className="max-w-[200px] sm:max-w-[280px] md:max-w-[320px] lg:max-w-[380px] rounded-md border border-white/20"
                             />
                             {msg.content && msg.content !== imageUrl ? (
-                              <p>{msg.content}</p>
+                              <p className="text-sm">{msg.content}</p>
                             ) : null}
                           </div>
                         ) : (
-                          <p>{msg.content}</p>
+                          <p className="text-sm break-words">{msg.content}</p>
                         )}
                         <p className={`text-xs mt-1 ${isMine ? "text-white/70" : "text-gray-500"}`}>
                           {formatChatTime(msg.createdAt)}
@@ -698,7 +716,7 @@ export default function ChatPage() {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="border-t p-4">
+            <div className="border-t p-3 md:p-4">
               <div className="flex gap-2 items-center relative">
                 <input
                   ref={imageInputRef}
@@ -710,15 +728,16 @@ export default function ChatPage() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-9 w-9 md:h-10 md:w-10"
                   onClick={() => imageInputRef.current?.click()}
                   disabled={!selectedConversation || imageUploading}
                   title="Gửi ảnh"
                 >
-                  <Paperclip size={20} />
+                  <Paperclip size={18} className="md:w-5 md:h-5" />
                 </Button>
                 <Input
                   placeholder="Nhập tin nhắn..."
-                  className="flex-1"
+                  className="flex-1 text-sm md:text-base"
                   value={messageInput}
                   onChange={(event) => setMessageInput(event.target.value)}
                   onKeyDown={(event) => {
@@ -733,19 +752,20 @@ export default function ChatPage() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    className="h-9 w-9 md:h-10 md:w-10"
                     onClick={() => setEmojiOpen((prev) => !prev)}
                     disabled={!selectedConversation}
                     title="Biểu tượng cảm xúc"
                     data-emoji-toggle
                   >
-                    <Smile size={20} />
+                    <Smile size={18} className="md:w-5 md:h-5" />
                   </Button>
                   {emojiOpen ? (
-                    <div className="absolute bottom-12 right-0 w-64 max-w-[80vw] bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-6 gap-1 z-20" data-emoji-menu>
+                    <div className="absolute bottom-12 right-0 w-56 md:w-64 max-w-[80vw] bg-white border border-gray-200 rounded-lg shadow-lg p-2 grid grid-cols-6 gap-1 z-20" data-emoji-menu>
                       {emojiList.map((emoji) => (
                         <button
                           key={emoji}
-                          className="text-lg hover:bg-gray-100 rounded"
+                          className="text-base md:text-lg hover:bg-gray-100 rounded p-1"
                           onClick={() => handlePickEmoji(emoji)}
                           type="button"
                         >
@@ -758,10 +778,11 @@ export default function ChatPage() {
                 <Button
                   variant="buyer"
                   size="icon"
+                  className="h-9 w-9 md:h-10 md:w-10"
                   onClick={handleSendMessage}
                   disabled={!selectedConversation || sending || !messageInput.trim()}
                 >
-                  <Send size={20} />
+                  <Send size={18} className="md:w-5 md:h-5" />
                 </Button>
               </div>
             </div>

@@ -983,7 +983,12 @@ export const api = {
       const orders = Array.isArray(data) ? data : data?.orders || []
       return { data: Array.isArray(orders) ? orders : [] } as ApiResponse<Order[]>
     },
-    get: (orderId: string) => fetchApi<Order>(`/api/v1/order/${orderId}`),
+    get: (orderId: string, shopId?: string) => {
+      const endpoint = shopId 
+        ? `/api/v1/order/${orderId}?shopId=${encodeURIComponent(shopId)}`
+        : `/api/v1/order/${orderId}`
+      return fetchApi<Order>(endpoint)
+    },
     create: (data: CreateOrderRequest) =>
       fetchApi<Order>("/api/v1/order", {
         method: "POST",

@@ -355,6 +355,16 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
               ))
             ) : null}
+            
+            {/* Stock Display */}
+            {selectedSku && selectedSku.stock !== undefined && (
+              <div className="mb-2">
+                <p className="text-sm text-gray-600">
+                  Kho: <span className="font-semibold text-gray-800">{selectedSku.stock} sản phẩm</span>
+                </p>
+              </div>
+            )}
+            
             <div>
               <label className="text-sm font-medium mb-2 block">Số lượng</label>
               <div className="flex items-center gap-2">

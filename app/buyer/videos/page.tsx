@@ -150,11 +150,15 @@ function VideoSlide({
     let hls: Hls | null = null
     const attemptPlay = () => {
       if (!isActiveRef.current) return
-      videoEl.muted = true
+      videoEl.muted = false
       const playPromise = videoEl.play()
       if (playPromise && typeof playPromise.catch === "function") {
         playPromise.catch(() => {
-          // Ignore autoplay failures.
+          // If autoplay fails, try with muted
+          videoEl.muted = true
+          videoEl.play().catch(() => {
+            // Ignore autoplay failures
+          })
         })
       }
     }
@@ -312,7 +316,6 @@ function VideoSlide({
           ref={videoRef}
           className="h-full w-full cursor-pointer object-contain"
           poster={poster}
-          muted
           playsInline
           loop
           preload="metadata"
@@ -744,7 +747,7 @@ export default function BuyerVideosPage() {
           <div className="relative">
             <div
               ref={containerRef}
-              className={`${viewHeightClass} snap-y snap-mandatory overflow-y-auto scroll-smooth`}
+              className={`${viewHeightClass} snap-y snap-mandatory overflow-y-auto scroll-smooth hide-scrollbar`}
               onScroll={handleScroll}
             >
               {videos.map((video) => (
