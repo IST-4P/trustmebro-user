@@ -119,35 +119,7 @@ function ProductsContent() {
     }
   }, [search, selectedCategory, emptySearchMessage, currentPage, itemsPerPage, priceRange, sortBy])
 
-  const getProductCategoryIds = (product: Product) => {
-    const ids = new Set<string>()
-    if (product.categoryId) ids.add(String(product.categoryId))
-    if (Array.isArray(product.categoryIds)) {
-      product.categoryIds.forEach((id) => {
-        if (id) ids.add(String(id))
-      })
-    }
-    if (product.category) {
-      const categoryId = typeof product.category === "string"
-        ? product.category
-        : product.category.id
-      if (categoryId) ids.add(String(categoryId))
-    }
-    if (Array.isArray(product.categories)) {
-      product.categories.forEach((category) => {
-        const categoryId = typeof category === "string" ? category : category.id
-        if (categoryId) ids.add(String(categoryId))
-      })
-    }
-    return Array.from(ids)
-  }
-
-  const filteredProducts = selectedCategory
-    ? products.filter((product) => {
-        const productCategoryIds = getProductCategoryIds(product)
-        return productCategoryIds.includes(selectedCategory)
-      })
-    : products
+  // Không cần filter ở client vì API đã filter theo categoryId rồi
 
   // Reset về trang 1 khi thay đổi bộ lọc hoặc tìm kiếm
   useEffect(() => {
@@ -346,13 +318,13 @@ function ProductsContent() {
             <div className="text-center py-12">
               <p className="text-red-600">{error}</p>
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : products.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-600">{emptySearchMessage}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-              {filteredProducts.map((product) => (
+              {products.map((product) => (
                 <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                   <Link href={`/buyer/products/${product.id}`}>
                     <div className="relative h-32 sm:h-48 bg-gray-200">
@@ -441,7 +413,7 @@ function ProductsContent() {
           )}
 
           {/* Pagination */}
-          {!loading && !error && filteredProducts.length > 0 && totalPages > 1 && (
+          {!loading && !error && products.length > 0 && totalPages > 1 && (
             <div className="flex flex-col items-center gap-4 mt-8">
               <div className="text-sm text-gray-600">
                 Hiển thị {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} trong tổng số {totalItems} sản phẩm
