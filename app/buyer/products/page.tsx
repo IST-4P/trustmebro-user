@@ -26,6 +26,8 @@ function ProductsContent() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const itemsPerPage = 12
+  const [priceRange, setPriceRange] = useState<string>("")
+  const [sortBy, setSortBy] = useState<string>("")
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -82,7 +84,28 @@ function ProductsContent() {
         setTotalPages(1)
         setTotalItems(0)
       } else if (productsRes.data) {
-        setProducts(productsRes.data.items || [])
+        let items = productsRes.data.items || []
+        
+        // Client-side filtering by price range
+        if (priceRange) {
+          items = items.filter((product) => {
+            const price = product.basePrice ?? product.price ?? 0
+            if (priceRange === "under1m") return price < 1000000
+            if (priceRange === "1m-5m") return price >= 1000000 && price <= 5000000
+            if (priceRange === "5m-10m") return price >= 5000000 && price <= 10000000
+            if (priceRange === "over10m") return price > 10000000
+            return true
+          })
+        }
+        
+        // Client-side sorting
+        if (sortBy === "price-asc") {
+          items.sort((a, b) => (a.basePrice ?? a.price ?? 0) - (b.basePrice ?? b.price ?? 0))
+        } else if (sortBy === "price-desc") {
+          items.sort((a, b) => (b.basePrice ?? b.price ?? 0) - (a.basePrice ?? a.price ?? 0))
+        }
+        
+        setProducts(items)
         setTotalItems(productsRes.data.total || 0)
         setTotalPages(Math.ceil((productsRes.data.total || 0) / itemsPerPage))
       }
@@ -94,7 +117,7 @@ function ProductsContent() {
       isActive = false
       clearTimeout(handler)
     }
-  }, [search, selectedCategory, emptySearchMessage, currentPage, itemsPerPage])
+  }, [search, selectedCategory, emptySearchMessage, currentPage, itemsPerPage, priceRange, sortBy])
 
   const getProductCategoryIds = (product: Product) => {
     const ids = new Set<string>()
@@ -129,7 +152,7 @@ function ProductsContent() {
   // Reset về trang 1 khi thay đổi bộ lọc hoặc tìm kiếm
   useEffect(() => {
     setCurrentPage(1)
-  }, [search, selectedCategory])
+  }, [search, selectedCategory, priceRange, sortBy])
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -228,37 +251,55 @@ function ProductsContent() {
                     <label className="text-sm font-medium mb-2 block">Khoảng giá</label>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <input type="radio" name="price" id="price1" />
-                        <label htmlFor="price1" className="text-sm">Dưới 1.000.000 VND</label>
+                        <input 
+                          type="radio" 
+                          name="price" 
+                          id="price-all"
+                          checked={priceRange === ""}
+                          onChange={() => setPriceRange("")} 
+                        />
+                        <label htmlFor="price-all" className="text-sm cursor-pointer">Tất cả</label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <input type="radio" name="price" id="price2" />
-                        <label htmlFor="price2" className="text-sm">1.000.000 - 5.000.000 VND</label>
+                        <input 
+                          type="radio" 
+                          name="price" 
+                          id="price1"
+                          checked={priceRange === "under1m"}
+                          onChange={() => setPriceRange("under1m")} 
+                        />
+                        <label htmlFor="price1" className="text-sm cursor-pointer">Dưới 1.000.000 VND</label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <input type="radio" name="price" id="price3" />
-                        <label htmlFor="price3" className="text-sm">5.000.000 - 10.000.000 VND</label>
+                        <input 
+                          type="radio" 
+                          name="price" 
+                          id="price2"
+                          checked={priceRange === "1m-5m"}
+                          onChange={() => setPriceRange("1m-5m")} 
+                        />
+                        <label htmlFor="price2" className="text-sm cursor-pointer">1.000.000 - 5.000.000 VND</label>
                       </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Đánh giá</label>
-                    <div className="space-y-2">
-                      {[4, 3, 2, 1].map((rating) => (
-                        <div key={rating} className="flex items-center space-x-2">
-                          <input type="checkbox" id={`rating-${rating}`} />
-                          <label htmlFor={`rating-${rating}`} className="text-sm flex items-center">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                size={12}
-                                className={i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                              />
-                            ))}
-                            <span className="ml-1">trở lên</span>
-                          </label>
-                        </div>
-                      ))}
+                      <div className="flex items-center space-x-2">
+                        <input 
+                          type="radio" 
+                          name="price" 
+                          id="price3"
+                          checked={priceRange === "5m-10m"}
+                          onChange={() => setPriceRange("5m-10m")} 
+                        />
+                        <label htmlFor="price3" className="text-sm cursor-pointer">5.000.000 - 10.000.000 VND</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input 
+                          type="radio" 
+                          name="price" 
+                          id="price4"
+                          checked={priceRange === "over10m"}
+                          onChange={() => setPriceRange("over10m")} 
+                        />
+                        <label htmlFor="price4" className="text-sm cursor-pointer">Trên 10.000.000 VND</label>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -284,11 +325,14 @@ function ProductsContent() {
               <Button variant="outline" size="icon">
                 <List size={20} />
               </Button>
-              <select className="px-4 py-2 border rounded-md">
-                <option>Sắp xếp: Nổi bật</option>
-                <option>Giá: thấp đến cao</option>
-                <option>Giá: cao đến thấp</option>
-                <option>Đánh giá</option>
+              <select 
+                className="px-4 py-2 border rounded-md"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="">Sắp xếp mặc định</option>
+                <option value="price-asc">Giá: thấp đến cao</option>
+                <option value="price-desc">Giá: cao đến thấp</option>
               </select>
             </div>
           </div>
