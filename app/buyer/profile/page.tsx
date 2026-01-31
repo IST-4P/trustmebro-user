@@ -43,6 +43,19 @@ export default function ProfilePage() {
   const [provincesLoading, setProvincesLoading] = useState(false)
   const [districtsLoading, setDistrictsLoading] = useState(false)
   const [wardsLoading, setWardsLoading] = useState(false)
+  const [showShopModal, setShowShopModal] = useState(false)
+  const [shopFormData, setShopFormData] = useState({
+    name: "",
+    description: "",
+    logo: "",
+    address: "",
+    phone: "",
+  })
+  const [shopLoading, setShopLoading] = useState(false)
+  const [shopError, setShopError] = useState<string | null>(null)
+  const [hasShop, setHasShop] = useState(false)
+  const [existingShop, setExistingShop] = useState<any | null>(null)
+  const shopLogoInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     // Check authentication before loading user data
@@ -93,8 +106,89 @@ export default function ProfilePage() {
         birthday: response.data.birthday || "",
       })
       loadAddress()
+      checkShopStatus()
     }
     setLoading(false)
+  }
+
+  const checkShopStatus = async () => {
+    const response = await api.shop.getMine()
+    if (response.data) {
+      setHasShop(true)
+      setExistingShop(response.data)
+    } else {
+      setHasShop(false)
+      setExistingShop(null)
+    }
+  }
+
+  const handleShopLogoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setShopError(null)
+    const presigned = await api.media.imagePresigned({ filename: file.name })
+    if (presigned.error || !presigned.data?.presignedUrl || !presigned.data?.url) {
+      setShopError(
+        presigned.error ||
+          "Không thể tạo URL upload. Vui lòng thử lại."
+      )
+      setUploading(false)
+      event.target.value = ""
+      return
+    }
+
+    const upload = await api.media.uploadToPresignedUrl(presigned.data.presignedUrl, file)
+    if (upload.error) {
+      setShopError(upload.error)
+    } else {
+      setShopFormData((prev) => ({
+        ...prev,
+        logo: presigned.data?.url || "",
+      }))
+    }
+    setUploading(false)
+    event.target.value = ""
+  }
+
+  const handleShopRegister = async () => {
+    if (!shopFormData.name.trim()) {
+      setShopError("Vui lòng nhập tên shop")
+      return
+    }
+    if (!shopFormData.phone.trim()) {
+      setShopError("Vui lòng nhập số điện thoại")
+      return
+    }
+
+    setShopLoading(true)
+    setShopError(null)
+
+    const response = await api.shop.create({
+      name: shopFormData.name.trim(),
+      description: shopFormData.description.trim() || undefined,
+      logo: shopFormData.logo || undefined,
+      address: shopFormData.address.trim() || undefined,
+      phone: shopFormData.phone.trim(),
+    })
+
+    if (response.error) {
+      setShopError(typeof response.error === "string" ? response.error : String(response.error))
+    } else if (response.data) {
+      setHasShop(true)
+      setExistingShop(response.data)
+      setShowShopModal(false)
+      setShopFormData({
+        name: "",
+        description: "",
+        logo: "",
+        address: "",
+        phone: "",
+      })
+      setToast({ message: "Đăng ký shop thành công!", variant: "success" })
+      window.setTimeout(() => setToast(null), 2500)
+    }
+    setShopLoading(false)
   }
 
   const handleSave = async () => {
@@ -620,10 +714,170 @@ export default function ProfilePage() {
                    : user?.firstName || user?.lastName || "Người dùng")}
               </h3>
               <p className="text-sm text-gray-600 mb-4">{user?.email || ""}</p>
+              {hasShop ? (
+                <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                  <p className="text-sm text-green-800 font-medium">
+                    ✓ Bạn đã đăng ký làm Shop
+                  </p>
+                  {existingShop && (
+                    <p className="text-xs text-green-700 mt-1">
+                      {existingShop.name}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <Button 
+                  variant="buyer" 
+                  className="w-full"
+                  onClick={() => setShowShopModal(true)}
+                >
+                  Đăng ký làm Shop
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Shop Registration Modal */}
+      {showShopModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Đăng ký làm Shop</h2>
+                <button
+                  onClick={() => {
+                    setShowShopModal(false)
+                    setShopError(null)
+                    setShopFormData({
+                      name: "",
+                      description: "",
+                      logo: "",
+                      address: "",
+                      phone: "",
+                    })
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {shopError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+                  {shopError}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="shopName">Tên Shop <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="shopName"
+                    placeholder="Nhập tên shop"
+                    value={shopFormData.name}
+                    onChange={(e) => setShopFormData({ ...shopFormData, name: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="shopDescription">Mô tả Shop</Label>
+                  <textarea
+                    id="shopDescription"
+                    placeholder="Mô tả về shop của bạn"
+                    className="w-full min-h-[100px] px-3 py-2 border rounded-md"
+                    value={shopFormData.description}
+                    onChange={(e) => setShopFormData({ ...shopFormData, description: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="shopPhone">Số điện thoại <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="shopPhone"
+                    type="tel"
+                    placeholder="Nhập số điện thoại"
+                    value={shopFormData.phone}
+                    onChange={(e) => setShopFormData({ ...shopFormData, phone: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="shopAddress">Địa chỉ Shop</Label>
+                  <Input
+                    id="shopAddress"
+                    placeholder="Nhập địa chỉ shop"
+                    value={shopFormData.address}
+                    onChange={(e) => setShopFormData({ ...shopFormData, address: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label>Logo Shop</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={shopLogoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleShopLogoSelect}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => shopLogoInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? "Đang tải lên..." : "Chọn logo"}
+                    </Button>
+                    {shopFormData.logo && (
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={shopFormData.logo} 
+                          alt="Shop logo preview" 
+                          className="w-10 h-10 rounded object-cover"
+                        />
+                        <span className="text-sm text-green-600">✓ Đã tải lên</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowShopModal(false)
+                      setShopError(null)
+                      setShopFormData({
+                        name: "",
+                        description: "",
+                        logo: "",
+                        address: "",
+                        phone: "",
+                      })
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    variant="buyer"
+                    className="flex-1"
+                    onClick={handleShopRegister}
+                    disabled={shopLoading}
+                  >
+                    {shopLoading ? "Đang đăng ký..." : "Đăng ký"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
