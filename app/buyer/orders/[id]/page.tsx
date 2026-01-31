@@ -125,7 +125,7 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   }
 
   const handleContactSeller = async () => {
-    if (!order?.shopId && !order?.shop?.id && !order?.shop?.ownerId) {
+    if (!order?.shopId) {
       setToast({ message: "Không thể kết nối với người bán", variant: "error" })
       setTimeout(() => setToast(null), 2500)
       return
@@ -133,12 +133,11 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
     setChatLoading(true)
     try {
-      // Try to get shop info if we only have shopId
-      let ownerId = order.shop?.ownerId
+      // Get shop info to find ownerId
+      let ownerId: string | undefined
       
-      if (!ownerId && (order.shopId || order.shop?.id)) {
-        const shopId = order.shopId || order.shop?.id
-        const shopResponse = await api.shop.get(shopId)
+      if (order.shopId) {
+        const shopResponse = await api.shop.get(order.shopId)
         if (shopResponse.data?.ownerId) {
           ownerId = shopResponse.data.ownerId
         }
@@ -245,28 +244,23 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
     const steps = [
       { 
         label: "Đã xác nhận", 
-        completed: status !== "PENDING" && status !== "CANCELLED",
-        active: status === "PENDING"
+        completed: status !== "PENDING" && status !== "pending" && status !== "CREATING" && status !== "CANCELLED" && status !== "cancelled",
+        active: status === "PENDING" || status === "pending"
       },
       { 
         label: "Đang xử lý", 
-        completed: ["PROCESSING", "SHIPPING", "SHIPPED", "DELIVERED", "COMPLETED"].includes(status),
-        active: status === "PROCESSING"
-      },
-      { 
-        label: "Đã giao cho vận chuyển", 
-        completed: ["SHIPPING", "SHIPPED", "DELIVERED", "COMPLETED"].includes(status),
-        active: status === "SHIPPING"
+        completed: ["CONFIRMED", "processing", "shipped", "COMPLETED", "delivered"].includes(status),
+        active: status === "CONFIRMED" || status === "processing"
       },
       { 
         label: "Đang vận chuyển", 
-        completed: ["SHIPPED", "DELIVERED", "COMPLETED"].includes(status),
-        active: status === "SHIPPED"
+        completed: ["shipped", "COMPLETED", "delivered"].includes(status),
+        active: status === "shipped"
       },
       { 
         label: "Đã giao", 
-        completed: ["DELIVERED", "COMPLETED"].includes(status),
-        active: status === "DELIVERED"
+        completed: status === "COMPLETED" || status === "delivered",
+        active: status === "COMPLETED" || status === "delivered"
       },
     ]
     
@@ -277,10 +271,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
   
   const orderItems = order?.items || order?.itemsSnapshot || []
   const orderCode = order?.code || order?.orderNumber || (order?.id ? `#${order.id.slice(0, 8).toUpperCase()}` : "")
-  const shippingAddress = order?.shippingAddress || order?.address
-  const totalAmount = order?.grandTotal || order?.totalAmount || order?.total || 0
+  const shippingAddress = order?.shippingAddress
+  const totalAmount = order?.grandTotal || order?.total || 0
   const paymentMethod = order?.paymentMethod || "COD"
-  const trackingNumber = order?.trackingNumber || order?.trackingCode
+  const trackingNumber = order?.trackingNumber
 
   if (loading) {
     return (
@@ -432,8 +426,8 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
               <h2 className="text-xl font-semibold mb-4">Địa chỉ giao hàng</h2>
               {shippingAddress ? (
                 <div className="text-gray-600">
-                  {shippingAddress.recipientName && (
-                    <p className="font-medium text-gray-800 mb-1">{shippingAddress.recipientName}</p>
+                  {(shippingAddress.name || shippingAddress.fullName) && (
+                    <p className="font-medium text-gray-800 mb-1">{shippingAddress.name || shippingAddress.fullName}</p>
                   )}
                   {shippingAddress.phone && (
                     <p className="mb-2">{shippingAddress.phone}</p>
@@ -448,6 +442,16 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                         .filter(Boolean)
                         .join(", ")}
                     </p>
+                  )}
+                </div>
+              ) : order?.receiverName ? (
+                <div className="text-gray-600">
+                  <p className="font-medium text-gray-800 mb-1">{order.receiverName}</p>
+                  {order.receiverPhone && (
+                    <p className="mb-2">{order.receiverPhone}</p>
+                  )}
+                  {order.receiverAddress && (
+                    <p>{order.receiverAddress}</p>
                   )}
                 </div>
               ) : (
@@ -465,14 +469,16 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                   <p>
                     Trạng thái thanh toán: {" "}
                     <span className={
-                      order.paymentStatus === "PAID" 
+                      order.paymentStatus === "SUCCESS" || order.paymentStatus === "paid"
                         ? "text-green-600 font-medium" 
-                        : order.paymentStatus === "PENDING"
+                        : order.paymentStatus === "PENDING" || order.paymentStatus === "pending"
                         ? "text-yellow-600 font-medium"
                         : "text-gray-600"
                     }>
-                      {order.paymentStatus === "PAID" ? "Đã thanh toán" : 
-                       order.paymentStatus === "PENDING" ? "Chờ thanh toán" : 
+                      {order.paymentStatus === "SUCCESS" || order.paymentStatus === "paid" ? "Đã thanh toán" : 
+                       order.paymentStatus === "PENDING" || order.paymentStatus === "pending" ? "Chờ thanh toán" : 
+                       order.paymentStatus === "FAILED" || order.paymentStatus === "failed" ? "Thanh toán thất bại" :
+                       order.paymentStatus === "REFUNDED" || order.paymentStatus === "refunded" ? "Đã hoàn tiền" :
                        "Chưa thanh toán"}
                     </span>
                   </p>
